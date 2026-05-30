@@ -581,13 +581,9 @@ const button=this.querySelector("button")
 button.disabled=true
 button.innerText="Submitting..."
 
-const response=await fetch(
-"https://hook.eu1.make.com/e738vk61z1ijbgsqhsnue9w8d6k14vas",
-{
-method:"POST",
-body:new FormData(this)
-}
-)
+console.log("Sandbox submit:", Object.fromEntries(new FormData(this)))
+alert("Sandbox mode – no order submitted")
+return
 
 if(!response.ok){
 
