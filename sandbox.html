@@ -636,13 +636,13 @@ row.style.gap = "6px"
 row.style.marginBottom = "6px"
 
 row.innerHTML = `
-<select class="side">
+<select class="side" style="flex:0 0 60px;">
 <option value="A">A</option>
 <option value="B">B</option>
 </select>
 
 <div style="position:relative; flex:1; min-width:0;">
-<input type="text" placeholder="Track name" class="trackName" autocomplete="off">
+<input type="text" placeholder="Track name" class="trackName" autocomplete="off" style="width:100%;">
 <div class="suggestions" style="
 position:absolute;
 top:calc(100% + 4px);
@@ -659,9 +659,9 @@ display:none;
 "></div>
 </div>
 
-<input type="text" placeholder="mm:ss" class="duration" style="width:80px">
+<input type="text" placeholder="mm:ss" class="duration" style="flex:0 0 80px;">
 
-<button type="button" class="remove">×</button>
+<button type="button" class="remove" style="flex:0 0 44px;">×</button>
 `
 
 row.querySelector(".remove").onclick = () => {
