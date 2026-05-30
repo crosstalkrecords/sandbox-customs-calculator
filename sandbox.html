@@ -616,7 +616,14 @@ const tracksContainer = document.getElementById("tracks")
 const addTrackBtn = document.getElementById("addTrackBtn")
 const runtimeSummary = document.getElementById("runtimeSummary")
 const tracklistTextarea = document.querySelector('textarea[name="Tracklist"]')
+  async function searchTracks(query){
 
+const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=5`)
+const data = await res.json()
+
+return data.results || []
+
+}
 function createTrackRow(){
 
 const row = document.createElement("div")
@@ -725,16 +732,21 @@ addTrackBtn.addEventListener("click", createTrackRow)
 
 // convert mm:ss → seconds
 function parseTime(str){
-const parts = str.split(":")
-if(parts.length !== 2) return 0
-return (parseInt(parts[0]) * 60) + parseInt(parts[1])
-}
 
-// convert seconds → mm:ss
-function formatTime(sec){
-const m = Math.floor(sec / 60)
-const s = sec % 60
-return `${m}:${s.toString().padStart(2,'0')}`
+if(!str) return 0
+
+str = str.replace(".", ":")
+
+const parts = str.split(":")
+
+if(parts.length !== 2) return 0
+
+const minutes = parseInt(parts[0])
+const seconds = parseInt(parts[1])
+
+if(isNaN(minutes) || isNaN(seconds)) return 0
+
+return (minutes * 60) + seconds
 }
 
 function updateTracklist(){
@@ -784,14 +796,7 @@ document.querySelector('[name="Side A Length"]').value = formatTime(sideA)
 document.querySelector('[name="Side B Length"]').value = formatTime(sideB)
 
 }
-  async function searchTracks(query){
 
-const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=5`)
-const data = await res.json()
-
-return data.results || []
-
-}
 </script>
 
 </body>
