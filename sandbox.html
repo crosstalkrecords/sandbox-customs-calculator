@@ -630,7 +630,22 @@ row.innerHTML = `
 <option value="B">B</option>
 </select>
 
-<input type="text" placeholder="Track name" class="trackName">
+<div style="position:relative; flex:1;">
+<input type="text" placeholder="Track name" class="trackName" autocomplete="off">
+<div class="suggestions" style="
+position:absolute;
+top:100%;
+left:0;
+right:0;
+background:#fff;
+border:1px solid #ddd;
+border-radius:6px;
+z-index:10;
+max-height:150px;
+overflow:auto;
+display:none;
+"></div>
+</div>
 
 <input type="text" placeholder="mm:ss" class="duration" style="width:80px">
 
@@ -644,6 +659,63 @@ updateTracklist()
 
 row.querySelectorAll("input, select").forEach(el=>{
 el.addEventListener("input", updateTracklist)
+})
+
+const input = row.querySelector(".trackName")
+const suggestionsBox = row.querySelector(".suggestions")
+
+input.addEventListener("input", async () => {
+
+const query = input.value.trim()
+
+if(query.length < 3){
+suggestionsBox.style.display = "none"
+return
+}
+
+const results = await searchTracks(query)
+
+suggestionsBox.innerHTML = ""
+
+results.forEach(track => {
+
+const item = document.createElement("div")
+
+item.style.padding = "8px"
+item.style.cursor = "pointer"
+item.style.fontSize = "13px"
+item.style.borderBottom = "1px solid #eee"
+
+const duration = Math.floor(track.trackTimeMillis / 1000)
+
+const minutes = Math.floor(duration / 60)
+const seconds = duration % 60
+
+const formatted = `${minutes}:${seconds.toString().padStart(2,'0')}`
+
+item.innerHTML = `
+${track.artistName} – ${track.trackName}
+<span style="opacity:.6; float:right;">${formatted}</span>
+`
+
+item.onclick = () => {
+
+input.value = `${track.artistName} – ${track.trackName}`
+
+row.querySelector(".duration").value = formatted
+
+suggestionsBox.style.display = "none"
+
+updateTracklist()
+
+}
+
+suggestionsBox.appendChild(item)
+
+})
+
+suggestionsBox.style.display = results.length ? "block" : "none"
+
 })
 
 tracksContainer.appendChild(row)
@@ -710,6 +782,14 @@ Side B: ${formatTime(sideB)}${warningB}
 // populate hidden fields for Make
 document.querySelector('[name="Side A Length"]').value = formatTime(sideA)
 document.querySelector('[name="Side B Length"]').value = formatTime(sideB)
+
+}
+  async function searchTracks(query){
+
+const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=5`)
+const data = await res.json()
+
+return data.results || []
 
 }
 </script>
