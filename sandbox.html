@@ -522,7 +522,11 @@ rpm.querySelector('option[value="33 RPM"]').disabled=false
 runtimeGuide.innerHTML=`Maximum side length: <strong>${limits[size.value][rpm.value]}</strong>`
 
 }
-
+function formatTime(sec){
+const m = Math.floor(sec / 60)
+const s = sec % 60
+return `${m}:${s.toString().padStart(2,'0')}`
+}
 function updateTracklistGuide(){
 document.getElementById("tracklistGuide").innerHTML =
 `Keep each side under <strong>${limits[size.value][rpm.value]}</strong> for best results`
@@ -723,8 +727,11 @@ suggestionsBox.appendChild(item)
 
 suggestionsBox.style.display = results.length ? "block" : "none"
 
-})
+})  // closes input listener
 
+input.addEventListener("blur", () => {
+setTimeout(()=> suggestionsBox.style.display = "none", 200)
+})
 tracksContainer.appendChild(row)
 }
 
@@ -755,8 +762,10 @@ let sideA = 0
 let sideB = 0
 
 let output = ""
+let aCount = 0
+let bCount = 0
 
-document.querySelectorAll("#tracks > div").forEach((row, i)=>{
+document.querySelectorAll("#tracks > div").forEach((row)=>{
 
 const side = row.querySelector(".side").value
 const name = row.querySelector(".trackName").value
@@ -767,20 +776,22 @@ if(!name) return
 const seconds = parseTime(duration)
 
 if(side === "A"){
+aCount++
 sideA += seconds
-output += `A${i+1} - ${name}\n`
+output += `A${aCount} - ${name}\n`
 }else{
+bCount++
 sideB += seconds
-output += `B${i+1} - ${name}\n`
+output += `B${bCount} - ${name}\n`
 }
 
 })
 
+// update textarea
 tracklistTextarea.value = output.trim()
 
+// runtime warning
 const maxTime = limits[size.value][rpm.value]
-
-// convert limit to seconds
 const maxSeconds = parseTime(maxTime)
 
 let warningA = sideA > maxSeconds ? " ⚠️ Too long" : ""
@@ -791,9 +802,12 @@ Side A: ${formatTime(sideA)}${warningA}<br>
 Side B: ${formatTime(sideB)}${warningB}
 `
 
-// populate hidden fields for Make
-document.querySelector('[name="Side A Length"]').value = formatTime(sideA)
-document.querySelector('[name="Side B Length"]').value = formatTime(sideB)
+// populate Make fields
+const sideAField = document.querySelector('[name="Side A Length"]')
+const sideBField = document.querySelector('[name="Side B Length"]')
+
+if(sideAField) sideAField.value = formatTime(sideA)
+if(sideBField) sideBField.value = formatTime(sideB)
 
 }
 
