@@ -694,9 +694,17 @@ output += `B${i+1} - ${name}\n`
 
 tracklistTextarea.value = output.trim()
 
+const maxTime = limits[size.value][rpm.value]
+
+// convert limit to seconds
+const maxSeconds = parseTime(maxTime)
+
+let warningA = sideA > maxSeconds ? " ⚠️ Too long" : ""
+let warningB = sideB > maxSeconds ? " ⚠️ Too long" : ""
+
 runtimeSummary.innerHTML = `
-Side A: ${formatTime(sideA)}  
-Side B: ${formatTime(sideB)}
+Side A: ${formatTime(sideA)}${warningA}<br>
+Side B: ${formatTime(sideB)}${warningB}
 `
 
 // populate hidden fields for Make
