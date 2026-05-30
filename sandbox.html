@@ -462,7 +462,7 @@ const artistPrices={
 }
 
 const limits={
-"7":{"45 RPM":"3:45"},
+"7":{"45 RPM":"5:00"},
 "10":{"33 RPM":"14:00","45 RPM":"11:50"},
 "12":{"33 RPM":"18:30","45 RPM":"15:10"}
 }
@@ -613,34 +613,47 @@ button.innerText = "Submit Project"
 
 })
 // ===============================
-// TRACK BUILDER
+// TRACK BUILDER (CLEAN VERSION)
 // ===============================
 
 const tracksContainer = document.getElementById("tracks")
 const addTrackBtn = document.getElementById("addTrackBtn")
 const runtimeSummary = document.getElementById("runtimeSummary")
 const tracklistTextarea = document.querySelector('textarea[name="Tracklist"]')
-  async function searchTracks(query){
 
+// iTunes search
+async function searchTracks(query){
+try{
 const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=5`)
 const data = await res.json()
-
 return data.results || []
-
+}catch(e){
+return []
 }
+}
+
+// convert mm:ss → seconds
+function parseTime(str){
+if(!str) return 0
+str = str.replace(".", ":")
+const parts = str.split(":")
+if(parts.length !== 2) return 0
+const minutes = parseInt(parts[0])
+const seconds = parseInt(parts[1])
+if(isNaN(minutes) || isNaN(seconds)) return 0
+return (minutes * 60) + seconds
+}
+
+// create row
 function createTrackRow(){
 
 const row = document.createElement("div")
 row.style.display = "flex"
 row.style.gap = "6px"
 row.style.marginBottom = "6px"
+row.style.alignItems = "center"
 
 row.innerHTML = `
-<select class="side" style="flex:0 0 60px;">
-<option value="A">A</option>
-<option value="B">B</option>
-</select>
-
 <div style="position:relative; flex:1; min-width:0;">
 <input type="text" placeholder="Track name" class="trackName" autocomplete="off" style="width:100%;">
 <div class="suggestions" style="
@@ -664,16 +677,20 @@ display:none;
 <button type="button" class="remove" style="flex:0 0 44px;">×</button>
 `
 
+// remove row
 row.querySelector(".remove").onclick = () => {
 row.remove()
 updateTracklist()
 }
 
-row.querySelectorAll("input, select").forEach(el=>{
+// update listeners
+row.querySelectorAll("input").forEach(el=>{
 el.addEventListener("input", updateTracklist)
 })
 
+// autocomplete
 const input = row.querySelector(".trackName")
+const durationInput = row.querySelector(".duration")
 const suggestionsBox = row.querySelector(".suggestions")
 
 input.addEventListener("input", async () => {
@@ -699,10 +716,8 @@ item.style.fontSize = "13px"
 item.style.borderBottom = "1px solid #eee"
 
 const duration = Math.floor(track.trackTimeMillis / 1000)
-
 const minutes = Math.floor(duration / 60)
 const seconds = duration % 60
-
 const formatted = `${minutes}:${seconds.toString().padStart(2,'0')}`
 
 item.innerHTML = `
@@ -711,15 +726,10 @@ ${track.artistName} – ${track.trackName}
 `
 
 item.onclick = () => {
-
 input.value = `${track.artistName} – ${track.trackName}`
-
-row.querySelector(".duration").value = formatted
-
+durationInput.value = formatted
 suggestionsBox.style.display = "none"
-
 updateTracklist()
-
 }
 
 suggestionsBox.appendChild(item)
@@ -728,35 +738,17 @@ suggestionsBox.appendChild(item)
 
 suggestionsBox.style.display = results.length ? "block" : "none"
 
-})  // closes input listener
+})
 
+// blur close
 input.addEventListener("blur", () => {
 setTimeout(()=> suggestionsBox.style.display = "none", 200)
 })
+
 tracksContainer.appendChild(row)
 }
 
-addTrackBtn.addEventListener("click", createTrackRow)
-
-// convert mm:ss → seconds
-function parseTime(str){
-
-if(!str) return 0
-
-str = str.replace(".", ":")
-
-const parts = str.split(":")
-
-if(parts.length !== 2) return 0
-
-const minutes = parseInt(parts[0])
-const seconds = parseInt(parts[1])
-
-if(isNaN(minutes) || isNaN(seconds)) return 0
-
-return (minutes * 60) + seconds
-}
-
+// update tracklist
 function updateTracklist(){
 
 let sideA = 0
@@ -766,9 +758,13 @@ let output = ""
 let aCount = 0
 let bCount = 0
 
+const maxTime = limits[size.value][rpm.value]
+const maxSeconds = parseTime(maxTime)
+
+let currentSide = "A"
+
 document.querySelectorAll("#tracks > div").forEach((row)=>{
 
-const side = row.querySelector(".side").value
 const name = row.querySelector(".trackName").value
 const duration = row.querySelector(".duration").value
 
@@ -776,7 +772,12 @@ if(!name) return
 
 const seconds = parseTime(duration)
 
-if(side === "A"){
+// auto switch to B
+if(currentSide === "A" && (sideA + seconds) > maxSeconds){
+currentSide = "B"
+}
+
+if(currentSide === "A"){
 aCount++
 sideA += seconds
 output += `A${aCount} - ${name}\n`
@@ -791,10 +792,7 @@ output += `B${bCount} - ${name}\n`
 // update textarea
 tracklistTextarea.value = output.trim()
 
-// runtime warning
-const maxTime = limits[size.value][rpm.value]
-const maxSeconds = parseTime(maxTime)
-
+// warnings
 let warningA = sideA > maxSeconds ? " ⚠️ Too long" : ""
 let warningB = sideB > maxSeconds ? " ⚠️ Too long" : ""
 
@@ -812,6 +810,9 @@ if(sideBField) sideBField.value = formatTime(sideB)
 
 }
 
+// init
+addTrackBtn.addEventListener("click", createTrackRow)
+createTrackRow()
 </script>
 
 </body>
