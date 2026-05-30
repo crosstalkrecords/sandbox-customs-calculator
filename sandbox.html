@@ -572,45 +572,21 @@ shipCheck.addEventListener("change",()=>{
 shippingFields.classList.toggle("open")
 })
 
-document.getElementById("orderForm").addEventListener("submit",async function(e){
+document.getElementById("orderForm").addEventListener("submit", async function(e){
 
 e.preventDefault()
 
-const button=this.querySelector("button")
+const button = this.querySelector("button")
 
-button.disabled=true
-button.innerText="Submitting..."
+button.disabled = true
+button.innerText = "Submitting..."
 
 console.log("Sandbox submit:", Object.fromEntries(new FormData(this)))
+
 alert("Sandbox mode – no order submitted")
-return
 
-if(!response.ok){
-
-alert("Submission failed. Please try again.")
-button.disabled=false
-button.innerText="Submit Project"
-return
-
-}
-
-this.innerHTML = "";
-document.getElementById("successBox").style.display="block"
-
-// 👇 THIS IS THE FIX
-const data = await response.json();
-console.log(data);
-const uploadLink = data.upload_link;
-
-if (uploadLink) {
-  document.getElementById("uploadButton").href = uploadLink;
-  document.getElementById("uploadButtonWrap").style.display = "block";
-}
-
-document.getElementById("successBox").scrollIntoView({
-  behavior: "smooth",
-  block: "center"
-});
+button.disabled = false
+button.innerText = "Submit Project"
 
 })
 
