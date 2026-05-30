@@ -318,7 +318,26 @@ Format tracks like:<br>
 <strong>A1, A2, A3…</strong> (Side A)<br>
 <strong>B1, B2…</strong> (Side B if applicable)
 </div>
+<!-- TRACK BUILDER -->
+<div id="trackBuilder" style="margin-top:16px;">
 
+<div style="font-weight:700; margin-bottom:8px;">
+Build Your Tracklist (optional)
+</div>
+
+<div id="tracks"></div>
+
+<button type="button" id="addTrackBtn" style="margin-top:10px;">
++ Add Track
+</button>
+
+<div id="runtimeSummary" style="
+margin-top:10px;
+font-size:13px;
+font-weight:600;
+"></div>
+
+</div>
 <textarea name="Tracklist" placeholder="A1 - Track Name&#10;A2 - Track Name&#10;&#10;B1 - Track Name"></textarea>
 
 <div id="tracklistGuide" style="
@@ -589,7 +608,102 @@ button.disabled = false
 button.innerText = "Submit Project"
 
 })
+// ===============================
+// TRACK BUILDER
+// ===============================
 
+const tracksContainer = document.getElementById("tracks")
+const addTrackBtn = document.getElementById("addTrackBtn")
+const runtimeSummary = document.getElementById("runtimeSummary")
+const tracklistTextarea = document.querySelector('textarea[name="Tracklist"]')
+
+function createTrackRow(){
+
+const row = document.createElement("div")
+row.style.display = "flex"
+row.style.gap = "6px"
+row.style.marginBottom = "6px"
+
+row.innerHTML = `
+<select class="side">
+<option value="A">A</option>
+<option value="B">B</option>
+</select>
+
+<input type="text" placeholder="Track name" class="trackName">
+
+<input type="text" placeholder="mm:ss" class="duration" style="width:80px">
+
+<button type="button" class="remove">×</button>
+`
+
+row.querySelector(".remove").onclick = () => {
+row.remove()
+updateTracklist()
+}
+
+row.querySelectorAll("input, select").forEach(el=>{
+el.addEventListener("input", updateTracklist)
+})
+
+tracksContainer.appendChild(row)
+}
+
+addTrackBtn.addEventListener("click", createTrackRow)
+
+// convert mm:ss → seconds
+function parseTime(str){
+const parts = str.split(":")
+if(parts.length !== 2) return 0
+return (parseInt(parts[0]) * 60) + parseInt(parts[1])
+}
+
+// convert seconds → mm:ss
+function formatTime(sec){
+const m = Math.floor(sec / 60)
+const s = sec % 60
+return `${m}:${s.toString().padStart(2,'0')}`
+}
+
+function updateTracklist(){
+
+let sideA = 0
+let sideB = 0
+
+let output = ""
+
+document.querySelectorAll("#tracks > div").forEach((row, i)=>{
+
+const side = row.querySelector(".side").value
+const name = row.querySelector(".trackName").value
+const duration = row.querySelector(".duration").value
+
+if(!name) return
+
+const seconds = parseTime(duration)
+
+if(side === "A"){
+sideA += seconds
+output += `A${i+1} - ${name}\n`
+}else{
+sideB += seconds
+output += `B${i+1} - ${name}\n`
+}
+
+})
+
+tracklistTextarea.value = output.trim()
+
+runtimeSummary.innerHTML = `
+Side A: ${formatTime(sideA)}  
+Side B: ${formatTime(sideB)}
+`
+
+// populate hidden fields for Make
+document.querySelector('[name="Side A Length"]').value = formatTime(sideA)
+document.querySelector('[name="Side B Length"]').value = formatTime(sideB)
+
+}
 </script>
 
 </body>
