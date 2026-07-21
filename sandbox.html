@@ -450,7 +450,7 @@ Customers are solely responsible for ensuring they have the legal right to repro
 <label>I agree to the declaration and terms above</label>
 </div>
 
-<button type="submit">Submit Project</button>
+<button type="submit" id="submitBtn">Submit Project</button>
 
 </form>
   
@@ -618,7 +618,7 @@ document.getElementById("orderForm").addEventListener("submit", async function(e
 
 e.preventDefault()
 
-const button = this.querySelector("button")
+const button = document.getElementById("submitBtn")
 
 button.disabled = true
 button.innerText = "Submitting..."
