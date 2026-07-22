@@ -687,6 +687,9 @@ row.innerHTML = `
       class="trackName"
       autocomplete="off"
       style="width:100%;">
+      <div style="font-size:11px;color:#888;margin-top:4px;">
+Type a track or enter your own. Need audio? Use “Get audio”.
+</div>
     <div class="suggestions"></div>
   </div>
 
@@ -702,9 +705,9 @@ row.innerHTML = `
     </span>
 
     <span style="display:flex; gap:10px; align-items:center;">
-      <span class="findTrackBtn" style="cursor:pointer;">
-        Search on Qobuz
-      </span>
+<span class="findTrackBtn" style="cursor:pointer; display:none;">
+  Get audio
+</span>
 
       <button type="button"
         class="remove"
@@ -799,7 +802,7 @@ suggestionsBox.style.display = "none"
 // --- SIMPLE QOBUZ SEARCH LINK ---
 const query = encodeURIComponent(track.artistName + " " + track.trackName)
 row.dataset.qobuz = `https://www.qobuz.com/au-en/search?q=${query}`
-
+row.querySelector(".findTrackBtn").style.display = "inline-block"
 updateTracklist()
 }
 
