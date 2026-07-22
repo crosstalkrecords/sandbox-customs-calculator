@@ -782,29 +782,9 @@ input.value = `${track.artistName} – ${track.trackName}`
 durationInput.value = formatted
 suggestionsBox.style.display = "none"
 
-// --- QOBUZ LOOKUP ---
-try {
-
+// --- SIMPLE QOBUZ SEARCH LINK ---
 const query = encodeURIComponent(track.artistName + " " + track.trackName)
-const res = await fetch(`https://www.qobuz.com/v4/au-en/catalog/search/autosuggest?query=${query}`)
-const data = await res.json()
-
-let qobuzUrl = ""
-
-if(data.tracks && data.tracks.length > 0){
-
-const match = data.tracks.find(t =>
-t.artist.toLowerCase().includes(track.artistName.toLowerCase())
-) || data.tracks[0]
-
-qobuzUrl = match.url || ""
-}
-
-row.dataset.qobuz = qobuzUrl
-
-}catch(e){
-row.dataset.qobuz = ""
-}
+row.dataset.qobuz = `https://www.qobuz.com/au-en/search?q=${query}`
 
 updateTracklist()
 }
