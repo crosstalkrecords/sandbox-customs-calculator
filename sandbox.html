@@ -370,7 +370,7 @@ Track search is for convenience only. You must supply your own audio files and h
 <div id="tracks"></div>
 
 <button type="button" id="addTrackBtn" style="margin-top:10px;">
-+ Add Track
++ Add another track
 </button>
 
 <div id="runtimeSummary" style="
@@ -706,15 +706,56 @@ const row = document.createElement("div")
 row.style.marginBottom = "10px"
 
 row.innerHTML = `
-<div style="position:relative;">
-  <input type="text" placeholder="Track name" class="trackName" autocomplete="off">
-  <div class="suggestions"></div>
-</div>
+<div style="
+  border:1px solid #e5e5e5;
+  border-radius:8px;
+  padding:10px;
+  background:#fafafa;
+">
 
-<div style="display:flex; gap:6px; margin-top:6px; align-items:center;">
-  <input type="text" placeholder="mm:ss" class="duration" style="width:80px;">
-  <span class="findTrackBtn">Find on Qobuz →</span>
-  <button type="button" class="remove" style="width:44px;">×</button>
+  <div style="margin-bottom:6px;">
+    <input type="text"
+      placeholder="Track name"
+      class="trackName"
+      autocomplete="off"
+      style="width:100%;">
+    <div class="suggestions"></div>
+  </div>
+
+  <div style="
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:12px;
+    color:#666;
+  ">
+    <span class="durationWrap">
+      <input type="text"
+        placeholder="mm:ss"
+        class="duration"
+        style="width:70px;">
+    </span>
+
+    <span style="display:flex; gap:10px; align-items:center;">
+      <span class="findTrackBtn" style="cursor:pointer;">
+        Search on Qobuz
+      </span>
+
+      <button type="button"
+        class="remove"
+        style="
+          width:28px;
+          height:28px;
+          border-radius:50%;
+          background:#eee;
+          color:#666;
+          font-size:16px;
+        ">
+        ×
+      </button>
+    </span>
+  </div>
+
 </div>
 `;
 
