@@ -259,11 +259,6 @@ Invalid artist code
 
 <div id="runtimeGuide" class="runtimeGuide"></div>
 
-<label>Sides</label>
-<select id="sides" name="Sides">
-<option value="Single">Single</option>
-<option value="Double">Double</option>
-</select>
 
 <label>Quantity</label>
 <input type="number" id="qty" name="Quantity" value="1" min="1">
@@ -294,13 +289,11 @@ font-size:11px;
 line-height:1.5;
 ">
 
-<strong>Note about double-sided 12&quot; records</strong><br>
+<strong>Note about 12" records</strong><br>
 
-Double-sided 12&quot; records longer than roughly 10 minutes per side take significantly longer to cut and are not practical for larger runs at this pricing.
+Longer 12" records take significantly longer to cut and are not practical for larger runs at this pricing.
 
 For this configuration the order form is limited to <strong>5 units</strong>.
-
-If you're planning a larger project please feel free to contact Crosstalk Records and we'll happily advise on the best approach.
 
 </div>
 <div id="priceBox" class="priceBox"></div>
@@ -347,24 +340,14 @@ margin-bottom:6px;
 line-height:1.4;
 opacity:.9;
 ">
-Format tracks like:<br>
-<strong>A1, A2, A3…</strong> (Side A)<br>
-<strong>B1, B2…</strong> (Side B if applicable)
+
 </div>
 <!-- TRACK BUILDER -->
 <div id="trackBuilder" style="margin-top:16px;">
 
-<div style="font-weight:700; margin-bottom:6px;">
-Add your tracks (we’ll handle the sides for you)
-</div>
-
-<div style="
-font-size:11px;
-color:#666;
-margin-bottom:10px;
-line-height:1.4;
-">
-Track search is for convenience only. You must supply your own audio files and have the legal right to reproduce them.
+Add your tracks
+<div style="font-size:11px;color:#666;margin-top:4px;">
+We’ll organise everything automatically.
 </div>
 
 <div id="tracks"></div>
@@ -518,19 +501,18 @@ const limits={
 
 const size=document.getElementById("size")
 const rpm=document.getElementById("rpm")
-const sides=document.getElementById("sides")
 const qty=document.getElementById("qty")
 const rush=document.getElementById("rushCheck")
 const priceBox=document.getElementById("priceBox")
 const runtimeGuide=document.getElementById("runtimeGuide")
-const sideBContainer=document.getElementById("sideBContainer")
+
 const artistOrder=document.getElementById("artistOrder")
 
 function updatePrice(){
 
 let table = (artistOrder.value === "Yes") ? artistPrices : retailPrices
 
-let base = table[size.value][sides.value]
+let base = table[size.value]["Single"]
 
 let total = base * qty.value
 
@@ -548,7 +530,7 @@ if(document.getElementById("shipCheck").checked) total += 20
 // limit double sided 12" orders
 const limitNotice = document.getElementById("twelveLimitNotice")
 
-if(size.value==="12" && sides.value==="Double"){
+if(size.value==="12"){
 
 qty.max = 5
 
@@ -606,17 +588,7 @@ rush.addEventListener("change",updatePrice)
 document.getElementById("shipCheck").addEventListener("change", updatePrice)
 document.getElementById("colour")?.addEventListener("change", updatePrice)
 document.getElementById("designCheck")?.addEventListener("change", updatePrice)
-sides.addEventListener("change",()=>{
 
-updatePrice()
-
-if(sides.value==="Single"){
-sideBContainer.style.display="none"
-}else{
-sideBContainer.style.display="block"
-}
-
-})
 
 updateRuntime()
 updatePrice()
@@ -730,10 +702,7 @@ row.innerHTML = `
     color:#666;
   ">
     <span class="durationWrap">
-      <input type="text"
-        placeholder="mm:ss"
-        class="duration"
-        style="width:70px;">
+    <input type="hidden" class="duration">
     </span>
 
     <span style="display:flex; gap:10px; align-items:center;">
@@ -877,7 +846,12 @@ const duration = row.querySelector(".duration").value
 
 if(!name) return
 
-const seconds = parseTime(duration)
+let seconds = parseTime(duration)
+
+// fallback if no duration entered
+if(seconds === 0 && name){
+  seconds = 180 // assume 3 mins
+}
 
 // auto switch to B
 if(currentSide === "A" && (sideA + seconds) > maxSeconds){
