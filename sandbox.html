@@ -703,38 +703,20 @@ return (minutes * 60) + seconds
 function createTrackRow(){
 
 const row = document.createElement("div")
-row.style.display = "flex"
-row.style.gap = "6px"
-row.style.marginBottom = "6px"
-row.style.alignItems = "center"
+row.style.marginBottom = "10px"
 
 row.innerHTML = `
-<div style="position:relative; flex:1; min-width:0;">
-<input type="text" placeholder="Track name" class="trackName" autocomplete="off" style="width:100%;">
-<div class="suggestions" style="
-position:absolute;
-top:calc(100% + 4px);
-left:0;
-width:100%;
-background:#fff;
-border:1px solid #ddd;
-border-radius:8px;
-z-index:999;
-max-height:180px;
-overflow-y:auto;
-box-shadow:0 8px 20px rgba(0,0,0,0.08);
-display:none;
-"></div>
+<div style="position:relative;">
+  <input type="text" placeholder="Track name" class="trackName" autocomplete="off">
+  <div class="suggestions"></div>
 </div>
 
-<input type="text" placeholder="mm:ss" class="duration" style="flex:0 0 80px;">
-
-<button type="button" class="findTrackBtn" style="flex:0 0 auto; font-size:11px; padding:4px 8px;">
-Find This Track
-</button>
-
-<button type="button" class="remove" style="flex:0 0 44px;">×</button>
-`
+<div style="display:flex; gap:6px; margin-top:6px; align-items:center;">
+  <input type="text" placeholder="mm:ss" class="duration" style="width:80px;">
+  <span class="findTrackBtn">Find on Qobuz →</span>
+  <button type="button" class="remove" style="width:44px;">×</button>
+</div>
+`;
 
 // remove row
 row.querySelector(".remove").onclick = () => {
