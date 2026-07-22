@@ -687,6 +687,10 @@ display:none;
 
 <input type="text" placeholder="mm:ss" class="duration" style="flex:0 0 80px;">
 
+<button type="button" class="findTrackBtn" style="flex:0 0 auto; font-size:11px; padding:4px 8px;">
+Find This Track
+</button>
+
 <button type="button" class="remove" style="flex:0 0 44px;">×</button>
 `
 
@@ -695,7 +699,17 @@ row.querySelector(".remove").onclick = () => {
 row.remove()
 updateTracklist()
 }
+row.querySelector(".findTrackBtn").onclick = () => {
 
+const url = row.dataset.qobuz
+
+if(url){
+window.open(url, "_blank")
+}else{
+alert("We couldn’t find this on Qobuz yet — try selecting a suggestion first.")
+}
+
+}
 // update listeners
 row.querySelectorAll("input").forEach(el=>{
 el.addEventListener("input", updateTracklist)
@@ -747,10 +761,36 @@ item.innerHTML = `
 </div>
 `
 
-item.onclick = () => {
+item.onclick = async () => {
+
 input.value = `${track.artistName} – ${track.trackName}`
 durationInput.value = formatted
 suggestionsBox.style.display = "none"
+
+// --- QOBUZ LOOKUP ---
+try {
+
+const query = encodeURIComponent(track.artistName + " " + track.trackName)
+const res = await fetch(`https://www.qobuz.com/v4/au-en/catalog/search/autosuggest?query=${query}`)
+const data = await res.json()
+
+let qobuzUrl = ""
+
+if(data.tracks && data.tracks.length > 0){
+
+const match = data.tracks.find(t =>
+t.artist.toLowerCase().includes(track.artistName.toLowerCase())
+) || data.tracks[0]
+
+qobuzUrl = match.url || ""
+}
+
+row.dataset.qobuz = qobuzUrl
+
+}catch(e){
+row.dataset.qobuz = ""
+}
+
 updateTracklist()
 }
 
