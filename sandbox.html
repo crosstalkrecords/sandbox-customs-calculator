@@ -672,15 +672,14 @@ return (minutes * 60) + seconds
 function createTrackRow(){
 
 const row = document.createElement("div")
-row.style.marginBottom = "10px"
-
-row.innerHTML = `
-<div style="
+row.style = `
   border:1px solid #e5e5e5;
   border-radius:8px;
   padding:10px;
+  margin-bottom:10px;
   background:#fafafa;
-">
+`
+row.innerHTML = `
 
   <div style="margin-bottom:6px;">
     <input type="text"
@@ -722,7 +721,6 @@ row.innerHTML = `
     </span>
   </div>
 
-</div>
 `;
 
 // remove row
