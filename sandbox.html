@@ -267,7 +267,22 @@ Invalid artist code
 
 <label>Quantity</label>
 <input type="number" id="qty" name="Quantity" value="1" min="1">
+<label>Vinyl Colour</label>
+<select id="colour">
+  <option value="Clear">Clear (standard)</option>
+  <option value="Black">Black (+$10)</option>
+  <option value="Red">Transparent Red (+$10)</option>
+</select>
 
+<div class="checkbox-row">
+  <input type="checkbox" id="designCheck">
+  <label for="designCheck">Add Printed Jacket + Labels (+$40)</label>
+</div>
+
+<div style="font-size:11px; margin-top:6px; color:#666;">
+  Minimum artwork: 1500×1500px. Higher resolution preferred.
+  <a href="mailto:custom@crosstalkrecords.com">Email us</a> if unsure.
+</div>
 <div id="twelveLimitNotice" style="
 display:none;
 margin-top:10px;
@@ -518,6 +533,17 @@ let table = (artistOrder.value === "Yes") ? artistPrices : retailPrices
 let base = table[size.value][sides.value]
 
 let total = base * qty.value
+
+// --- COLOUR ---
+const colourVal = document.getElementById("colour")?.value
+if (colourVal && colourVal !== "Clear") {
+  total += 10 * qty.value
+}
+
+// --- DESIGN ---
+if (document.getElementById("designCheck")?.checked) {
+  total += 40
+}
 if(document.getElementById("shipCheck").checked) total += 20
 // limit double sided 12" orders
 const limitNotice = document.getElementById("twelveLimitNotice")
