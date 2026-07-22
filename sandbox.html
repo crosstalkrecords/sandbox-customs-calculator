@@ -734,21 +734,14 @@ const seconds = duration % 60
 const formatted = `${minutes}:${seconds.toString().padStart(2,'0')}`
 
 item.innerHTML = `
-<div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+<div style="display:flex; justify-content:space-between; align-items:center;">
 
-  <div style="flex:1; min-width:0;">
-    <div style="font-size:13px;">
-      ${track.artistName} – ${track.trackName}
-    </div>
+  <div style="flex:1; min-width:0; font-size:13px;">
+    ${track.artistName} – ${track.trackName}
   </div>
 
-  <div style="white-space:nowrap; font-size:12px; opacity:.7;">
+  <div style="white-space:nowrap; font-size:12px; opacity:.6;">
     ${formatted}
-    <a href="https://www.hdtracks.com/catalogsearch/result/?q=${encodeURIComponent(track.artistName + ' ' + track.trackName)}"
-   target="_blank"
-   style="margin-left:8px; font-size:11px; color:#c33; text-decoration:none;">
-   Search
-</a>
   </div>
 
 </div>
