@@ -604,7 +604,8 @@ updateTracklistGuide();
 qty.addEventListener("input",updatePrice)
 rush.addEventListener("change",updatePrice)
 document.getElementById("shipCheck").addEventListener("change", updatePrice)
-
+document.getElementById("colour")?.addEventListener("change", updatePrice)
+document.getElementById("designCheck")?.addEventListener("change", updatePrice)
 sides.addEventListener("change",()=>{
 
 updatePrice()
