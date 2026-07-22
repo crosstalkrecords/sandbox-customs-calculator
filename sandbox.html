@@ -340,7 +340,7 @@ We’ll organise everything automatically.
 <div id="tracks"></div>
 
 <button type="button" id="addTrackBtn" style="margin-top:10px;">
-+ Add another track
++ Add track
 </button>
 
 <div id="runtimeSummary" style="
@@ -683,7 +683,7 @@ row.innerHTML = `
 
   <div style="margin-bottom:6px;">
     <input type="text"
-      placeholder="Track name"
+      placeholder="Start typing a track..."
       class="trackName"
       autocomplete="off"
       style="width:100%;">
@@ -705,7 +705,7 @@ Type a track or enter your own. Need audio? Use “Get audio”.
     </span>
 
     <span style="display:flex; gap:10px; align-items:center;">
-<span class="findTrackBtn" style="cursor:pointer; display:none;">
+<span class="findTrackBtn" style="cursor:pointer; display:none; opacity:0.7;">
   Get audio
 </span>
 
@@ -796,6 +796,11 @@ item.innerHTML = `
 item.onclick = async () => {
 
 input.value = `${track.artistName} – ${track.trackName}`
+  input.style.background = "#e8f5e9"
+
+setTimeout(() => {
+  input.style.background = "#fafafa"
+}, 400)
 durationInput.value = formatted
 suggestionsBox.style.display = "none"
 
@@ -820,6 +825,14 @@ setTimeout(()=> suggestionsBox.style.display = "none", 200)
 })
 
 tracksContainer.appendChild(row)
+row.style.opacity = "0"
+row.style.transform = "translateY(5px)"
+
+setTimeout(() => {
+  row.style.transition = "all 0.2s ease"
+  row.style.opacity = "1"
+  row.style.transform = "translateY(0)"
+}, 10)
 }
 
 // update tracklist
