@@ -317,19 +317,19 @@ For this configuration the order form is limited to <strong>5 units</strong>.
 
 </div>
 
-<label>Track Listing</label>
-
 <div style="
-font-size:11px;
-color:#c9302c;
+font-weight:700;
+font-size:18px;
+margin-top:20px;
 margin-bottom:6px;
-line-height:1.4;
-opacity:.9;
 ">
+Track Listing
+</div>
+
 
 </div>
 <!-- TRACK BUILDER -->
-<div id="trackBuilder" style="margin-top:28px;">
+<div id="trackBuilder" style="margin-top:18px;;">
 <div style="font-weight:700; font-size:16px;">
 Add your tracks
 </div>
@@ -339,8 +339,8 @@ We’ll organise everything automatically.
 
 <div id="tracks"></div>
 
-<button type="button" id="addTrackBtn" style="margin-top:10px;">
-+ Add track
+<button type="button" id="addTrackBtn" style="margin-top:12px;">
+Add track
 </button>
 
 <div id="runtimeSummary" style="
@@ -637,7 +637,7 @@ button.innerText = "Submitting..."
 
 })
 // ===============================
-// TRACK BUILDER (CLEAN VERSION)
+// TRACK BUILDER (STABLE + POLISHED)
 // ===============================
 
 const tracksContainer = document.getElementById("tracks")
@@ -672,93 +672,124 @@ return (minutes * 60) + seconds
 function createTrackRow(){
 
 const row = document.createElement("div")
+
 row.style = `
   border:1px solid #e5e5e5;
   border-radius:8px;
-  padding:10px;
-  margin-bottom:10px;
+  padding:8px;
+  margin-bottom:8px;
   background:#fafafa;
 `
+
 row.innerHTML = `
 
-  <div style="margin-bottom:6px;">
-    <input type="text"
-      placeholder="Start typing a track..."
-      class="trackName"
-      autocomplete="off"
-      style="width:100%;">
-      <div style="font-size:11px;color:#888;margin-top:4px;">
-Type a track or enter your own. Need audio? Use “Get audio”.
+<div style="margin-bottom:6px;">
+  <input type="text"
+    placeholder="Start typing a track..."
+    class="trackName"
+    autocomplete="off"
+    style="width:100%;">
+
+  <div style="font-size:11px;color:#888;margin-top:4px;">
+    Enter a track or your own audio.
+  </div>
+
+  <div class="suggestions" style="
+    position:relative;
+    z-index:5;
+    background:#fff;
+    border:1px solid #eee;
+    border-radius:6px;
+    margin-top:4px;
+    overflow:hidden;
+    display:none;
+  "></div>
 </div>
-    <div class="suggestions"></div>
-  </div>
+<div class="addedMsg" style="
+  font-size:11px;
+  color:#2f8f3a;
+  margin-top:4px;
+  opacity:0;
+  transition:opacity 0.2s ease;
+">
+ Added ✓
+</div>
+<div style="
+  display:flex;
+  justify-content:flex-end;
+  align-items:center;
+  gap:6px;
+  margin-top:4px;
+  font-size:12px;
+  color:#666;
+">
 
-  <div style="
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    font-size:12px;
-    color:#666;
-  ">
-    <span class="durationWrap">
-    <input type="hidden" class="duration">
-    </span>
+  <input type="hidden" class="duration">
 
-    <span style="display:flex; gap:10px; align-items:center;">
-<span class="findTrackBtn" style="cursor:pointer; display:none; opacity:0.7;">
-  Get audio
-</span>
+  <span class="findTrackBtn" style="cursor:pointer; display:none; opacity:0.7;">
+    Get audio file
+  </span>
 
-      <button type="button"
-        class="remove"
-        style="
-          width:28px;
-          height:28px;
-          border-radius:50%;
-          background:#eee;
-          color:#666;
-          font-size:16px;
-        ">
-        ×
-      </button>
-    </span>
-  </div>
+  <button type="button"
+    class="remove"
+    style="
+      width:28px;
+      height:28px;
+      border-radius:50%;
+      background:#eee;
+      color:#666;
+      font-size:16px;
+    ">
+    ×
+  </button>
 
-`;
+</div>
+`
 
 // remove row
 row.querySelector(".remove").onclick = () => {
 row.remove()
 updateTracklist()
 }
+
+// Qobuz click
 row.querySelector(".findTrackBtn").onclick = () => {
-
 const url = row.dataset.qobuz
-
 if(url){
 window.open(url, "_blank")
 }else{
-alert("We couldn’t find this on Qobuz yet — try selecting a suggestion first.")
+alert("Try selecting a suggested track first.")
+}
 }
 
-}
-// update listeners
+// inputs update
 row.querySelectorAll("input").forEach(el=>{
 el.addEventListener("input", updateTracklist)
 })
 
-// autocomplete
 const input = row.querySelector(".trackName")
 const durationInput = row.querySelector(".duration")
 const suggestionsBox = row.querySelector(".suggestions")
 
+// autocomplete
 input.addEventListener("input", async () => {
 
 const query = input.value.trim()
 
+// SMART MANUAL MODE
+if(
+  query.includes(" – ") ||
+  query.includes(" - ") ||
+  query.length > 40
+){
+  suggestionsBox.style.display = "none"
+  return
+}
+
+// MIN LENGTH
 if(query.length < 3){
-suggestionsBox.style.display = "none"
-return
+  suggestionsBox.style.display = "none"
+  return
 }
 
 const results = await searchTracks(query)
@@ -773,6 +804,8 @@ item.style.padding = "8px"
 item.style.cursor = "pointer"
 item.style.fontSize = "13px"
 item.style.borderBottom = "1px solid #eee"
+item.onmouseover = () => item.style.background = "#f5f5f5"
+item.onmouseout = () => item.style.background = "#fff"
 
 const duration = Math.floor(track.trackTimeMillis / 1000)
 const minutes = Math.floor(duration / 60)
@@ -780,34 +813,30 @@ const seconds = duration % 60
 const formatted = `${minutes}:${seconds.toString().padStart(2,'0')}`
 
 item.innerHTML = `
-<div style="display:flex; justify-content:space-between; align-items:center;">
-
-  <div style="flex:1; min-width:0; font-size:13px;">
-    ${track.artistName} – ${track.trackName}
-  </div>
-
-  <div style="white-space:nowrap; font-size:12px; opacity:.6;">
-    ${formatted}
-  </div>
-
+<div style="display:flex; justify-content:space-between;">
+  <div>${track.artistName} – ${track.trackName}</div>
+  <div style="opacity:.6;">${formatted}</div>
 </div>
 `
 
-item.onclick = async () => {
+item.onclick = () => {
 
 input.value = `${track.artistName} – ${track.trackName}`
-  input.style.background = "#e8f5e9"
-
-setTimeout(() => {
-  input.style.background = "#fafafa"
-}, 400)
 durationInput.value = formatted
+
+// subtle feedback
+input.style.background = "#e8f5e9"
+setTimeout(()=> input.style.background="#fafafa", 300)
+
 suggestionsBox.style.display = "none"
 
-// --- SIMPLE QOBUZ SEARCH LINK ---
+// Qobuz link
 const query = encodeURIComponent(track.artistName + " " + track.trackName)
 row.dataset.qobuz = `https://www.qobuz.com/au-en/search?q=${query}`
+
+// reveal button
 row.querySelector(".findTrackBtn").style.display = "inline-block"
+
 updateTracklist()
 }
 
@@ -824,18 +853,33 @@ input.addEventListener("blur", () => {
 setTimeout(()=> suggestionsBox.style.display = "none", 200)
 })
 
+// append row
 tracksContainer.appendChild(row)
+input.focus()
+const msg = row.querySelector(".addedMsg")
+
+msg.style.opacity = "0"
+
+setTimeout(()=>{
+  msg.style.opacity = "1"
+}, 10)
+
+setTimeout(()=>{
+  msg.style.opacity = "0"
+}, 1200)
+// subtle animation
 row.style.opacity = "0"
 row.style.transform = "translateY(5px)"
 
 setTimeout(() => {
-  row.style.transition = "all 0.2s ease"
-  row.style.opacity = "1"
-  row.style.transform = "translateY(0)"
+row.style.transition = "all 0.18s ease-out"
+row.style.opacity = "1"
+row.style.transform = "translateY(0)"
 }, 10)
+
 }
 
-// update tracklist
+// update tracklist (UNCHANGED CORE LOGIC)
 function updateTracklist(){
 
 let sideA = 0
@@ -859,12 +903,11 @@ if(!name) return
 
 let seconds = parseTime(duration)
 
-// fallback if no duration entered
+// fallback if no duration
 if(seconds === 0 && name){
-  seconds = 180 // assume 3 mins
+seconds = 180
 }
 
-// auto switch to B
 if(currentSide === "A" && (sideA + seconds) > maxSeconds){
 currentSide = "B"
 }
@@ -881,10 +924,8 @@ output += `B${bCount} - ${name}\n`
 
 })
 
-// update textarea
 tracklistTextarea.value = output.trim()
 
-// warnings
 let warningA = sideA > maxSeconds ? " ⚠️ Too long" : ""
 let warningB = sideB > maxSeconds ? " ⚠️ Too long" : ""
 
@@ -893,7 +934,6 @@ Side A: ${formatTime(sideA)}${warningA}<br>
 Side B: ${formatTime(sideB)}${warningB}
 `
 
-// populate Make fields
 const sideAField = document.querySelector('[name="Side A Length"]')
 const sideBField = document.querySelector('[name="Side B Length"]')
 
