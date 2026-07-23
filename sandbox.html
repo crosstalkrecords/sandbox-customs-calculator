@@ -828,8 +828,12 @@ setTimeout(()=> input.style.background="#fafafa", 300)
 suggestionsBox.style.display = "none"
 
 // Qobuz link
-const query = encodeURIComponent(track.artistName + " " + track.trackName)
-row.dataset.qobuz = `https://www.qobuz.com/au-en/search?q=${query}`
+const query = encodeURIComponent(
+  `${track.artistName} ${track.trackName} ${track.collectionName || ""}`
+)
+
+row.dataset.qobuz =
+  `https://www.qobuz.com/au-en/search/tracks/${query}`
 
 // reveal button
 row.querySelector(".findTrackBtn").style.display = "inline-block"
