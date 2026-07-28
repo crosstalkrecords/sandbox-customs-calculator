@@ -57,9 +57,9 @@ box-sizing:border-box;
 }
 
 textarea{
-min-height:80px;
-resize:vertical;
-font-family:monospace;
+  min-height:80px;
+  resize:vertical;
+  font-family:inherit;
 }
 
 button{
@@ -317,6 +317,8 @@ For this configuration the order form is limited to <strong>5 units</strong>.
 
 </div>
 
+<!-- SIMPLE TRACKLIST (LIVE VERSION) -->
+
 <div style="
 font-weight:700;
 font-size:18px;
@@ -324,49 +326,27 @@ margin-top:20px;
 margin-bottom:6px;
 ">
 Track Listing
-
-<!-- TRACK BUILDER -->
-<div id="trackBuilder" style="margin-top:18px;">
-<div style="font-weight:700; font-size:16px;">
-Add your tracks
-</div>
-<div style="font-size:11px;color:#666;margin-top:4px;margin-bottom:8px;">
-We’ll organise everything automatically.
 </div>
 
-<div id="tracks"></div>
+<textarea name="Tracklist" placeholder="Enter your tracks (e.g. Artist – Title, one per line)" style="
+width:100%;
+min-height:120px;
+border:1px solid #ddd;
+border-radius:6px;
+padding:10px;
+font-size:14px;
+"></textarea>
 
-<button type="button" id="addTrackBtn" style="margin-top:12px;">
-Add track
-</button>
-
-<div id="runtimeSummary" style="
-margin-top:10px;
-font-size:13px;
-font-weight:600;
-"></div>
-
-</div>
-<textarea name="Tracklist" readonly style="opacity:0.5; pointer-events:none;" placeholder="Your tracklist will appear here"></textarea>
-
-<div style="
-border-top:1px solid #eee;
-padding-top:8px;
-margin-top:12px;
-font-size:11px;
-color:#888;
-line-height:1.4;
-max-width:420px;
-">
-
-Don’t have your audio files yet? You’ll need downloadable audio (streaming links won’t work).
-If you’re sourcing files yourself, services such as 
-<a href="https://www.hdtracks.com" target="_blank" style="color:#c33;">HDtracks</a>, 
-<a href="https://bandcamp.com" target="_blank" style="color:#c33;">Bandcamp</a> or 
-<a href="https://www.qobuz.com" target="_blank" style="color:#c33;">Qobuz</a> offer downloadable formats suitable for vinyl cutting. Note: You must ensure you have the right to reproduce any material submitted.
-
+<div style="font-size:11px;color:#888;margin-top:6px; line-height:1.4;">
+Paste your tracklist or enter manually. We’ll organise everything for you.
 </div>
 
+<div style="margin-top:10px; font-size:13px;">
+Need help organising your record? 
+<a href="#" onclick="alert('Track Builder launching soon!'); return false;" style="color:#c9302c; font-weight:600;">
+Use our Track Builder →
+</a>
+</div>
 
 <div style="display:none;">
 <label>Instagram (optional)</label>
@@ -633,319 +613,6 @@ button.innerText = "Submitting..."
 
 
 })
-// ===============================
-// TRACK BUILDER (STABLE + POLISHED)
-// ===============================
-
-const tracksContainer = document.getElementById("tracks")
-const addTrackBtn = document.getElementById("addTrackBtn")
-const runtimeSummary = document.getElementById("runtimeSummary")
-const tracklistTextarea = document.querySelector('textarea[name="Tracklist"]')
-
-// iTunes search
-async function searchTracks(query){
-try{
-const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=5`)
-const data = await res.json()
-return data.results || []
-}catch(e){
-return []
-}
-}
-
-// convert mm:ss → seconds
-function parseTime(str){
-if(!str) return 0
-str = str.replace(".", ":")
-const parts = str.split(":")
-if(parts.length !== 2) return 0
-const minutes = parseInt(parts[0])
-const seconds = parseInt(parts[1])
-if(isNaN(minutes) || isNaN(seconds)) return 0
-return (minutes * 60) + seconds
-}
-
-// create row
-function createTrackRow(){
-
-const row = document.createElement("div")
-
-row.style = `
-  border:1px solid #e5e5e5;
-  border-radius:8px;
-  padding:8px;
-  margin-bottom:8px;
-  background:#fafafa;
-`
-
-row.innerHTML = `
-
-<div style="margin-bottom:6px;">
-  <input type="text"
-    placeholder="Start typing a track..."
-    class="trackName"
-    autocomplete="off"
-    style="width:100%;">
-
-  <div style="font-size:11px;color:#888;margin-top:4px;">
-    Enter a track or your own audio.
-  </div>
-
-  <div class="suggestions" style="
-    position:relative;
-    z-index:5;
-    background:#fff;
-    border:1px solid #eee;
-    border-radius:6px;
-    margin-top:4px;
-    overflow:hidden;
-    display:none;
-  "></div>
-</div>
-<div class="addedMsg" style="
-  font-size:11px;
-  color:#2f8f3a;
-  margin-top:4px;
-  opacity:0;
-  transition:opacity 0.2s ease;
-">
- Added ✓
-</div>
-<div style="
-  display:flex;
-  justify-content:flex-end;
-  align-items:center;
-  gap:6px;
-  margin-top:4px;
-  font-size:12px;
-  color:#666;
-">
-
-  <input type="hidden" class="duration">
-
-  <span class="findTrackBtn" style="cursor:pointer; display:none; opacity:0.7;">
-    Get audio file
-  </span>
-
-  <button type="button"
-    class="remove"
-    style="
-      width:28px;
-      height:28px;
-      border-radius:50%;
-      background:#eee;
-      color:#666;
-      font-size:16px;
-    ">
-    ×
-  </button>
-
-</div>
-`
-
-// remove row
-row.querySelector(".remove").onclick = () => {
-row.remove()
-updateTracklist()
-}
-
-// Qobuz click
-row.querySelector(".findTrackBtn").onclick = () => {
-const url = row.dataset.qobuz
-if(url){
-window.open(url, "_blank")
-}else{
-alert("Try selecting a suggested track first.")
-}
-}
-
-// inputs update
-row.querySelectorAll("input").forEach(el=>{
-el.addEventListener("input", updateTracklist)
-})
-
-const input = row.querySelector(".trackName")
-const durationInput = row.querySelector(".duration")
-const suggestionsBox = row.querySelector(".suggestions")
-
-// autocomplete
-input.addEventListener("input", async () => {
-
-const query = input.value.trim()
-
-// SMART MANUAL MODE
-if(
-  query.includes(" – ") ||
-  query.includes(" - ") ||
-  query.length > 40
-){
-  suggestionsBox.style.display = "none"
-  return
-}
-
-// MIN LENGTH
-if(query.length < 3){
-  suggestionsBox.style.display = "none"
-  return
-}
-
-const results = await searchTracks(query)
-
-suggestionsBox.innerHTML = ""
-
-results.forEach(track => {
-
-const item = document.createElement("div")
-
-item.style.padding = "8px"
-item.style.cursor = "pointer"
-item.style.fontSize = "13px"
-item.style.borderBottom = "1px solid #eee"
-item.onmouseover = () => item.style.background = "#f5f5f5"
-item.onmouseout = () => item.style.background = "#fff"
-
-const duration = Math.floor(track.trackTimeMillis / 1000)
-const minutes = Math.floor(duration / 60)
-const seconds = duration % 60
-const formatted = `${minutes}:${seconds.toString().padStart(2,'0')}`
-
-item.innerHTML = `
-<div style="display:flex; justify-content:space-between;">
-  <div>${track.artistName} – ${track.trackName}</div>
-  <div style="opacity:.6;">${formatted}</div>
-</div>
-`
-
-item.onclick = () => {
-
-input.value = `${track.artistName} – ${track.trackName}`
-durationInput.value = formatted
-
-// subtle feedback
-input.style.background = "#e8f5e9"
-setTimeout(()=> input.style.background="#fafafa", 300)
-
-suggestionsBox.style.display = "none"
-
-// Qobuz link
-const query = encodeURIComponent(
-  `${track.artistName} ${track.trackName} ${track.collectionName || ""}`
-)
-
-row.dataset.qobuz =
-  `https://www.qobuz.com/au-en/search/tracks/${query}`
-
-// reveal button
-row.querySelector(".findTrackBtn").style.display = "inline-block"
-
-updateTracklist()
-}
-
-suggestionsBox.appendChild(item)
-
-})
-
-suggestionsBox.style.display = results.length ? "block" : "none"
-
-})
-
-// blur close
-input.addEventListener("blur", () => {
-setTimeout(()=> suggestionsBox.style.display = "none", 200)
-})
-
-// append row
-tracksContainer.appendChild(row)
-input.focus()
-const msg = row.querySelector(".addedMsg")
-
-msg.style.opacity = "0"
-
-setTimeout(()=>{
-  msg.style.opacity = "1"
-}, 10)
-
-setTimeout(()=>{
-  msg.style.opacity = "0"
-}, 1200)
-// subtle animation
-row.style.opacity = "0"
-row.style.transform = "translateY(5px)"
-
-setTimeout(() => {
-row.style.transition = "all 0.18s ease-out"
-row.style.opacity = "1"
-row.style.transform = "translateY(0)"
-}, 10)
-
-}
-
-// update tracklist (UNCHANGED CORE LOGIC)
-function updateTracklist(){
-
-let sideA = 0
-let sideB = 0
-
-let output = ""
-let aCount = 0
-let bCount = 0
-
-const maxTime = limits[size.value][rpm.value]
-const maxSeconds = parseTime(maxTime)
-
-let currentSide = "A"
-
-document.querySelectorAll("#tracks > div").forEach((row)=>{
-
-const name = row.querySelector(".trackName").value
-const duration = row.querySelector(".duration").value
-
-if(!name) return
-
-let seconds = parseTime(duration)
-
-// fallback if no duration
-if(seconds === 0 && name){
-seconds = 180
-}
-
-if(currentSide === "A" && (sideA + seconds) > maxSeconds){
-currentSide = "B"
-}
-
-if(currentSide === "A"){
-aCount++
-sideA += seconds
-output += `A${aCount} - ${name}\n`
-}else{
-bCount++
-sideB += seconds
-output += `B${bCount} - ${name}\n`
-}
-
-})
-
-tracklistTextarea.value = output.trim()
-
-let warningA = sideA > maxSeconds ? " ⚠️ Too long" : ""
-let warningB = sideB > maxSeconds ? " ⚠️ Too long" : ""
-
-runtimeSummary.innerHTML = `
-Side A: ${formatTime(sideA)}${warningA}<br>
-Side B: ${formatTime(sideB)}${warningB}
-`
-
-const sideAField = document.querySelector('[name="Side A Length"]')
-const sideBField = document.querySelector('[name="Side B Length"]')
-
-if(sideAField) sideAField.value = formatTime(sideA)
-if(sideBField) sideBField.value = formatTime(sideB)
-
-}
-
-// init
-addTrackBtn.addEventListener("click", createTrackRow)
-createTrackRow()
 </script>
 
 </body>
