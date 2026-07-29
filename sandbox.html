@@ -346,10 +346,10 @@ Clear is standard. Coloured vinyl is purely aesthetic — sound quality is the s
   <option value="Red">Transparent Red (+$20 upgrade)</option>
 </select>
 
-<div style="margin-top:14px;">
-  <label style="display:flex; gap:8px; align-items:flex-start;">
-    <input type="checkbox" id="designCheck">
-    <span><strong>Printed Jacket + Labels</strong> (+$40)</span>
+<div class="checkbox-row">
+  <input type="checkbox" id="designCheck">
+  <label for="designCheck">
+    <strong>Printed Jacket + Labels</strong> (+$40)
   </label>
 </div>
 
@@ -785,13 +785,35 @@ document.getElementById("orderForm").addEventListener("submit", async function(e
 e.preventDefault()
 
 const button = document.getElementById("submitBtn")
+const form = e.target
+const formData = new FormData(form)
 
+// prevent double click
 button.disabled = true
 button.innerText = "Submitting..."
 
-// ✅ SHOW SUCCESS STATE
-document.getElementById("orderForm").style.display = "none"
-document.getElementById("successBox").style.display = "block"
+try {
+
+  // 🔗 SEND TO MAKE
+  await fetch("https://hook.eu1.make.com/p3xznwp1nwwoeh6dochkwqlqmn4idj2g", {
+    method: "POST",
+    body: formData
+  })
+
+  // ✅ ONLY show success after successful send
+  document.getElementById("orderForm").style.display = "none"
+  document.getElementById("successBox").style.display = "block"
+
+} catch (err) {
+
+  console.error(err)
+
+  button.disabled = false
+  button.innerText = "Submit Project"
+
+  alert("Something went wrong. Please try again.")
+
+}
 
 })
 
