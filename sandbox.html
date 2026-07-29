@@ -265,15 +265,18 @@ Invalid artist code
 <label>Vinyl Colour</label>
 <select id="colour">
   <option value="Clear">Clear (standard)</option>
-  <option value="Black">Black (+$10)</option>
-  <option value="Red">Transparent Red (+$10)</option>
+ <option value="Black">Black (+$20 upgrade)</option>
+<option value="Red">Transparent Red (+$20 upgrade)</option>
 </select>
 
 <div class="checkbox-row">
   <input type="checkbox" id="designCheck">
-  <label for="designCheck">Add Printed Jacket + Labels (+$40)</label>
+<label for="designCheck">Printed Jacket + Labels (+$40)</label>
 </div>
-
+<div style="font-size:12px; margin-top:8px; color:#444;">
+  Or go fully custom:
+  <strong>Custom Finish Pack (+$60)</strong> — coloured vinyl + printed jacket + labels
+</div>
 <div style="font-size:11px; margin-top:6px; color:#666;">
   Minimum artwork: 1500×1500px. Higher resolution preferred.
   <a href="mailto:custom@crosstalkrecords.com">Email us</a> if unsure.
@@ -434,8 +437,11 @@ line-height:1.4;
 ">
 
 <strong>Next step:</strong><br>
-You’ll receive your private upload link immediately after submitting your order.
-
+You’ll receive a private upload link immediately after submitting your order.<br>
+Use this to upload your audio and any artwork files.
+<div style="font-size:11px;color:#888;margin-top:6px;">
+Your labels will be printed exactly as entered here (unless adjusted by our engineer). Please double-check spelling.
+</div>
 </div>
 <button type="submit" id="submitBtn">Submit Project</button>
 
@@ -489,15 +495,20 @@ let table = (artistOrder.value === "Yes") ? artistPrices : retailPrices
 let base = table[size.value]["Single"]
 
 let total = base * qty.value
+const colourVal = document.getElementById("colour").value
+const designChecked = document.getElementById("designCheck").checked
 
-// --- COLOUR ---
-const colourVal = document.getElementById("colour")?.value
-if (colourVal && colourVal !== "Clear") {
-  total += 10 * qty.value
+// --- COLOUR + DESIGN LOGIC (UPDATED) ---
+const isColour = colourVal && colourVal !== "Clear"
+const isDesign = designChecked
+
+if (isColour && isDesign) {
+  total += 60
 }
-
-// --- DESIGN ---
-if (document.getElementById("designCheck")?.checked) {
+else if (isColour) {
+  total += 20
+}
+else if (isDesign) {
   total += 40
 }
 if(document.getElementById("shipCheck").checked) total += 20
