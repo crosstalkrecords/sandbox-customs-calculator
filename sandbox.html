@@ -794,15 +794,27 @@ button.innerText = "Submitting..."
 
 try {
 
-  // 🔗 SEND TO MAKE
-  await fetch("https://hook.eu1.make.com/p3xznwp1nwwoeh6dochkwqlqmn4idj2g", {
+  const response = await fetch("https://hook.eu1.make.com/e738vk61z1ijbgsqhsnue9w8d6k14vas", {
     method: "POST",
     body: formData
   })
 
-  // ✅ ONLY show success after successful send
+  if (!response.ok) {
+    throw new Error("Submission failed")
+  }
+
+  // show success screen
   document.getElementById("orderForm").style.display = "none"
   document.getElementById("successBox").style.display = "block"
+
+  // 👇 THIS IS THE IMPORTANT PART (RESTORES OLD BEHAVIOUR)
+  const data = await response.json()
+  const uploadLink = data.upload_link
+
+  if (uploadLink) {
+    document.getElementById("uploadButton").href = uploadLink
+    document.getElementById("uploadButtonWrap").style.display = "block"
+  }
 
 } catch (err) {
 
