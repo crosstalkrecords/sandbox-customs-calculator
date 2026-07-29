@@ -583,14 +583,46 @@ Use this to upload your audio and any artwork files.
 </form>
   
 <div id="successBox" class="successBox">
-  <h2>Order received</h2>
-  <p>Your Crosstalk Customs project has been submitted.</p>
 
-  <div id="uploadButtonWrap" style="display:none; margin-top:16px;">
-    <a id="uploadButton" class="upload-button" href="#" target="_blank">
-      Upload Your Audio
-    </a>
+  <h2 style="margin-bottom:8px;">You're all set 🎉</h2>
+
+  <p style="font-size:14px; color:#444; margin-bottom:14px;">
+    Your Crosstalk Customs order has been received.
+  </p>
+
+  <div style="
+  font-size:13px;
+  color:#666;
+  line-height:1.5;
+  margin-bottom:18px;
+  ">
+    <strong>What happens next:</strong><br>
+    We’ll review your order and get in touch if anything needs clarification before cutting.
   </div>
+
+  <div id="uploadButtonWrap" style="display:none; margin-top:10px;">
+    <a id="uploadButton" class="upload-button" href="#" target="_blank">
+      Upload your audio & artwork
+    </a>
+
+    <div style="
+    font-size:11px;
+    color:#777;
+    margin-top:8px;
+    ">
+      Use this link to send us your files whenever you're ready.
+    </div>
+  </div>
+
+  <div style="
+  margin-top:18px;
+  font-size:12px;
+  color:#888;
+  ">
+    Questions? <a href="mailto:custom@crosstalkrecords.com">custom@crosstalkrecords.com</a>
+  </div>
+
+</div>
 
 </div>
 
@@ -757,8 +789,12 @@ const button = document.getElementById("submitBtn")
 button.disabled = true
 button.innerText = "Submitting..."
 
+// ✅ SHOW SUCCESS STATE
+document.getElementById("orderForm").style.display = "none"
+document.getElementById("successBox").style.display = "block"
 
 })
+
 </script>
 
 </body>
