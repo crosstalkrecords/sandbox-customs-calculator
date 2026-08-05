@@ -353,25 +353,25 @@ Clear is standard. Coloured vinyl is purely aesthetic — sound quality is the s
 Packaging Options
 </label>
 
-<div style="display:flex;flex-direction:column;gap:10px;">
+<div style="display:flex;flex-direction:column;gap:10px; align-items:flex-start;">
 
-<label style="display:flex;align-items:center;gap:10px;font-size:14px;">
+<label style="display:flex;align-items:center;gap:10px;font-size:14px; width:auto;">
 <input type="radio" name="extras" value="none" checked>
-Standard (no extras)
+<span>Standard (no extras)</span>
 </label>
 
-<label style="display:flex;align-items:center;gap:10px;font-size:14px;">
+<label style="display:flex;align-items:center;gap:10px;font-size:14px; width:auto;">
 <input type="radio" name="extras" value="printed">
-<strong>Printed Jacket + Labels</strong> (+$40)
+<span><strong>Printed Jacket + Labels</strong> (+$40)</span>
 </label>
 
-<label style="display:flex;align-items:center;gap:10px;font-size:14px;">
+<label style="display:flex;align-items:center;gap:10px;font-size:14px; width:auto;">
 <input type="radio" name="extras" value="custom">
-<strong>Custom Finish Pack</strong> (+$60)
+<span><strong>Custom Finish Pack</strong> (+$60)</span>
 </label>
 
 </div>
-
+  
 <div style="font-size:12px;color:#666;margin-top:6px;">
 Custom = coloured vinyl + printed jacket + labels
 </div>
@@ -697,7 +697,7 @@ let table = (artistOrder.value === "Yes") ? artistPrices : retailPrices
 
 let base = table[size.value]["Single"]
 
-let total = base * qty.value
+let total = base * Number(qty.value || 1)
 const colourVal = document.getElementById("colour").value
 
 // --- COLOUR + DESIGN LOGIC (UPDATED) ---
@@ -849,7 +849,10 @@ try {
   document.getElementById("successBox").style.display = "block"
 
   // 👇 THIS IS THE IMPORTANT PART (RESTORES OLD BEHAVIOUR)
-  const data = await response.json()
+let data = {}
+try {
+  data = await response.json()
+} catch(e) {}
   const uploadLink = data.upload_link
 
   if (uploadLink) {
