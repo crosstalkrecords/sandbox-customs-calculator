@@ -311,7 +311,7 @@ border-radius:12px;
 ">
 
 <label>
-Vinyl Colour
+Vinyl & Packaging
 <span style="
 display:inline-block;
 margin-left:6px;
@@ -348,31 +348,34 @@ Clear is standard. Coloured vinyl is purely aesthetic — sound quality is the s
 
 <div style="margin-top:14px;">
 
-<label style="display:block;font-weight:700;margin-bottom:8px;">
+
+<label style="display:block;font-weight:700;margin-bottom:10px;">
 Packaging Options
 </label>
 
-<div class="checkbox-row">
-<input type="radio" name="extras" id="extras_none" value="none" checked>
-<label for="extras_none">Standard (no extras)</label>
-</div>
+<div style="display:flex;flex-direction:column;gap:10px;">
 
-<div class="checkbox-row">
-<input type="radio" name="extras" id="extras_printed" value="printed">
-<label for="extras_printed">
+<label style="display:flex;align-items:center;gap:10px;font-size:14px;">
+<input type="radio" name="extras" value="none" checked>
+Standard (no extras)
+</label>
+
+<label style="display:flex;align-items:center;gap:10px;font-size:14px;">
+<input type="radio" name="extras" value="printed">
 <strong>Printed Jacket + Labels</strong> (+$40)
 </label>
-</div>
 
-<div class="checkbox-row">
-<input type="radio" name="extras" id="extras_custom" value="custom">
-<label for="extras_custom">
+<label style="display:flex;align-items:center;gap:10px;font-size:14px;">
+<input type="radio" name="extras" value="custom">
 <strong>Custom Finish Pack</strong> (+$60)
 </label>
+
 </div>
 
 <div style="font-size:12px;color:#666;margin-top:6px;">
 Custom = coloured vinyl + printed jacket + labels
+</div>
+
 </div>
 
 </div>
@@ -421,8 +424,8 @@ For this configuration the order form is limited to <strong>5 units</strong>.
 <div style="
 margin-top:18px;
 padding:18px;
-background:#fff;
-border:2px solid #c9302c;
+background:#fafafa;
+border:1px solid #e5e5e5;
 border-radius:12px;
 ">
 
@@ -444,14 +447,24 @@ line-height:1.1;
 </div>
 
 </div>
-<div class="checkbox-row">
-<input type="hidden" name="Rush" value="off">
-<input type="checkbox" id="rushCheck" name="Rush" value="on">
+<div style="
+margin-top:14px;
+padding:14px;
+background:#fafafa;
+border:1px solid #e5e5e5;
+border-radius:10px;
+">
+
+<div class="checkbox-row" style="margin-top:0;">
+<input type="checkbox" id="rushCheck" name="Rush" value="Yes">
 
 <label for="rushCheck">Add Rush Order</label>
 </div>
-<div class="rushBox">
+
+<div style="font-size:12px;color:#666;margin-top:6px;">
 48-hour rush orders (often) available (+$80)
+</div>
+
 </div>
 
 
@@ -487,7 +500,9 @@ Paste your tracklist or enter manually. We’ll organise everything for you.
 </div>
 <textarea 
 name="tracklist"
-placeholder="Track 1\nTrack 2\nTrack 3..."
+placeholder="Track 1
+Track 2
+Track 3..."
 style="
 width:100%;
 margin-top:10px;
@@ -524,8 +539,7 @@ Use our Track Builder →
 </div>
 
 <div class="checkbox-row">
-<input type="hidden" name="Shipping Required" value="off">
-<input type="checkbox" id="shipCheck" name="Shipping Required" value="on">
+<input type="checkbox" id="shipCheck" name="Shipping Required" value="Yes">
 <label for="shipCheck">Shipping Required</label>
 </div>
 
@@ -685,20 +699,19 @@ let base = table[size.value]["Single"]
 
 let total = base * qty.value
 const colourVal = document.getElementById("colour").value
-const designChecked = document.getElementById("designCheck").checked
 
 // --- COLOUR + DESIGN LOGIC (UPDATED) ---
 const isColour = colourVal && colourVal !== "Clear"
-const isDesign = designChecked
 
-if (isColour && isDesign) {
+// NEW extras logic
+const extras = document.querySelector('input[name="extras"]:checked')?.value
+
+if (extras === "custom") {
   total += 60
 }
-else if (isColour) {
-  total += 20
-}
-else if (isDesign) {
-  total += 40
+else {
+  if (isColour) total += 20
+  if (extras === "printed") total += 40
 }
 if(document.getElementById("shipCheck").checked) total += 20
 // limit double sided 12" orders
@@ -743,25 +756,24 @@ const m = Math.floor(sec / 60)
 const s = sec % 60
 return `${m}:${s.toString().padStart(2,'0')}`
 }
-function updateTracklistGuide(){
-document.getElementById("tracklistGuide").innerHTML =
-`Keep each side under <strong>${limits[size.value][rpm.value]}</strong> for best results`
-}
+
 
 size.addEventListener("change",()=>{
 updateRuntime();
 updatePrice();
-updateTracklistGuide();
+
 })
 rpm.addEventListener("change",()=>{
 updateRuntime();
-updateTracklistGuide();
+
 })
 qty.addEventListener("input",updatePrice)
 rush.addEventListener("change",updatePrice)
 document.getElementById("shipCheck").addEventListener("change", updatePrice)
 document.getElementById("colour")?.addEventListener("change", updatePrice)
-document.getElementById("designCheck")?.addEventListener("change", updatePrice)
+document.querySelectorAll('input[name="extras"]').forEach(el => {
+  el.addEventListener("change", updatePrice)
+})
 
 
 updateRuntime()
@@ -809,7 +821,14 @@ e.preventDefault()
 const button = document.getElementById("submitBtn")
 const form = e.target
 const formData = new FormData(form)
+  
+if (!document.getElementById("rushCheck").checked) {
+  formData.set("Rush", "No")
+}
 
+if (!document.getElementById("shipCheck").checked) {
+  formData.set("Shipping Required", "No")
+}
 // prevent double click
 button.disabled = true
 button.innerText = "Submitting..."
