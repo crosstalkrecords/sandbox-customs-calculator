@@ -346,29 +346,36 @@ Clear is standard. Coloured vinyl is purely aesthetic — sound quality is the s
   <option value="Red">Transparent Red (+$20 upgrade)</option>
 </select>
 
+<div style="margin-top:14px;">
+
+<label style="display:block;font-weight:700;margin-bottom:8px;">
+Packaging Options
+</label>
+
 <div class="checkbox-row">
-  <input type="checkbox" id="designCheck">
-  <label for="designCheck">
-    <strong>Printed Jacket + Labels</strong> (+$40)
-  </label>
+<input type="radio" name="extras" id="extras_none" value="none" checked>
+<label for="extras_none">Standard (no extras)</label>
 </div>
 
-<div style="
-margin-top:10px;
-padding:10px 12px;
-background:#fff;
-border:1px dashed #ddd;
-border-radius:8px;
-font-size:13px;
-line-height:1.5;
-">
-Or go fully custom:
-<strong>Custom Finish Pack (+$60)</strong><br>
-<span style="color:#666;">
-coloured vinyl + printed jacket + labels
-</span>
+<div class="checkbox-row">
+<input type="radio" name="extras" id="extras_printed" value="printed">
+<label for="extras_printed">
+<strong>Printed Jacket + Labels</strong> (+$40)
+</label>
 </div>
 
+<div class="checkbox-row">
+<input type="radio" name="extras" id="extras_custom" value="custom">
+<label for="extras_custom">
+<strong>Custom Finish Pack</strong> (+$60)
+</label>
+</div>
+
+<div style="font-size:12px;color:#666;margin-top:6px;">
+Custom = coloured vinyl + printed jacket + labels
+</div>
+
+</div>
 <div style="
 margin-top:12px;
 font-size:12px;
