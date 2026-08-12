@@ -300,7 +300,9 @@ Step 2 — Build your record
 
 <label>Quantity</label>
 <input type="number" id="qty" name="Quantity" value="1" min="1">
-
+<!-- =====================================================
+V1.5 PATCH B START — VINYL + PACKAGING
+===================================================== -->
 <div style="
 margin-top:18px;
 padding:16px;
@@ -427,6 +429,9 @@ border-radius:8px;
 </div>
 
 </div>
+<!-- =====================================================
+V1.5 PATCH B END — VINYL + PACKAGING
+===================================================== -->
 <div id="twelveLimitNotice" style="
 display:none;
 margin-top:10px;
@@ -733,6 +738,9 @@ let table = (artistOrder.value === "Yes") ? artistPrices : retailPrices
 
 let base = table[size.value]["Double"]
 let total = base * Number(qty.value || 1)
+// =====================================================
+// V1.5 PATCH B START — VINYL + PACKAGING PRICING
+// =====================================================
 const colourVal = document.getElementById("colour").value
 
 // --- COLOUR + DESIGN LOGIC (UPDATED) ---
@@ -748,6 +756,11 @@ else {
   if (isColour) total += 20
   if (extras === "printed") total += 40
 }
+
+// =====================================================
+// V1.5 PATCH B END — VINYL + PACKAGING PRICING
+// =====================================================
+
 if(document.getElementById("shipCheck").checked) total += 20
 // limit double sided 12" orders
 const limitNotice = document.getElementById("twelveLimitNotice")
@@ -805,6 +818,9 @@ updateRuntime();
 qty.addEventListener("input",updatePrice)
 rush.addEventListener("change",updatePrice)
 document.getElementById("shipCheck").addEventListener("change", updatePrice)
+// =====================================================
+// V1.5 PATCH B START — VINYL + PACKAGING EVENTS/DATA
+// =====================================================
 document.getElementById("colour")?.addEventListener("change", updatePrice)
 
 document.querySelectorAll('input[name="extras"]').forEach(el => {
@@ -825,7 +841,9 @@ document.querySelectorAll('input[name="extras"]').forEach(el => {
     updatePrice()
   })
 })
-
+// =====================================================
+// V1.5 PATCH B END — VINYL + PACKAGING EVENTS/DATA
+// =====================================================
 updateRuntime()
 updatePrice()
 
