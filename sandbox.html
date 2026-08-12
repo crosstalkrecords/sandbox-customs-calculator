@@ -616,7 +616,90 @@ line-height:1.5;
 ">
 Build and check your tracklist before adding it to your order.
 </div>
+<div id="trackBuilderFormat" style="
+margin-top:16px;
+padding:12px 14px;
+background:#fafafa;
+border:1px solid #e5e5e5;
+border-radius:10px;
+font-size:13px;
+line-height:1.5;
+">
+</div>
+<div style="
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:12px;
+margin-top:16px;
+">
 
+<div style="
+border:1px solid #e5e5e5;
+border-radius:12px;
+padding:14px;
+box-sizing:border-box;
+">
+
+<div style="
+font-size:14px;
+font-weight:800;
+margin-bottom:4px;
+">
+SIDE A
+</div>
+
+<div id="trackBuilderSideATime" style="
+font-size:12px;
+color:#666;
+margin-bottom:12px;
+">
+0:00
+</div>
+
+<div style="
+font-size:12px;
+color:#888;
+line-height:1.4;
+">
+No tracks added yet.
+</div>
+
+</div>
+
+<div style="
+border:1px solid #e5e5e5;
+border-radius:12px;
+padding:14px;
+box-sizing:border-box;
+">
+
+<div style="
+font-size:14px;
+font-weight:800;
+margin-bottom:4px;
+">
+SIDE B
+</div>
+
+<div id="trackBuilderSideBTime" style="
+font-size:12px;
+color:#666;
+margin-bottom:12px;
+">
+0:00
+</div>
+
+<div style="
+font-size:12px;
+color:#888;
+line-height:1.4;
+">
+No tracks added yet.
+</div>
+
+</div>
+
+</div>
 </div>
 
 </div>
@@ -956,12 +1039,23 @@ shippingFields.classList.toggle("open")
 const trackBuilderOverlay = document.getElementById("trackBuilderOverlay")
 const openTrackBuilder = document.getElementById("openTrackBuilder")
 const closeTrackBuilder = document.getElementById("closeTrackBuilder")
+const trackBuilderFormat = document.getElementById("trackBuilderFormat")
 
+function updateTrackBuilderFormat() {
+  const currentSize = size.value
+  const currentRPM = rpm.value
+  const currentLimit = limits[currentSize][currentRPM]
+
+  trackBuilderFormat.innerHTML = `
+    <strong>${currentSize}" · ${currentRPM}</strong><br>
+    Maximum ${currentLimit} per side
+  `
+}
 function openTrackBuilderModal() {
+  updateTrackBuilderFormat()
   trackBuilderOverlay.style.display = "block"
   document.body.style.overflow = "hidden"
 }
-
 function closeTrackBuilderModal() {
   trackBuilderOverlay.style.display = "none"
   document.body.style.overflow = ""
