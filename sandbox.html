@@ -1077,7 +1077,12 @@ const trackBuilderTracks = {
   B: []
 }
 function trackBuilderDurationToSeconds(value) {
-  const clean = value.trim()
+  let clean = value.trim()
+
+  // Allow shorthand such as 324 → 3:24 or 1234 → 12:34
+  if (/^\d{3,4}$/.test(clean)) {
+    clean = clean.slice(0, -2) + ":" + clean.slice(-2)
+  }
 
   if (!/^\d+:\d{2}$/.test(clean)) {
     return 0
@@ -1150,7 +1155,25 @@ function renderTrackBuilderSide(side) {
       track.duration = durationInput.value
       updateTrackBuilderSideTime(side)
     })
+durationInput.addEventListener("blur", () => {
+  let clean = durationInput.value.trim()
 
+  // Normalise shorthand: 324 → 3:24, 1234 → 12:34
+  if (/^\d{3,4}$/.test(clean)) {
+    clean = clean.slice(0, -2) + ":" + clean.slice(-2)
+  }
+
+  // Only replace the displayed value if it forms a valid duration
+  if (/^\d+:\d{2}$/.test(clean)) {
+    const seconds = Number(clean.split(":")[1])
+
+    if (seconds <= 59) {
+      durationInput.value = clean
+      track.duration = clean
+      updateTrackBuilderSideTime(side)
+    }
+  }
+})
     removeButton.addEventListener("click", () => {
       tracks.splice(index, 1)
       renderTrackBuilderSide(side)
@@ -1173,9 +1196,20 @@ function updateTrackBuilderSideTime(side) {
     return total + trackBuilderDurationToSeconds(track.duration)
   }, 0)
 
-  timeDisplay.textContent = formatTime(totalSeconds)
-}
+  const limitString = limits[size.value][rpm.value]
+  const limitSeconds = trackBuilderDurationToSeconds(limitString)
+  const difference = limitSeconds - totalSeconds
 
+  if (totalSeconds > limitSeconds) {
+    timeDisplay.innerHTML =
+      `<strong>${formatTime(totalSeconds)} / ${limitString}</strong> · ` +
+      `<span style="color:#c9302c;font-weight:700;">${formatTime(Math.abs(difference))} OVER</span>`
+  } else {
+    timeDisplay.innerHTML =
+      `<strong>${formatTime(totalSeconds)} / ${limitString}</strong> · ` +
+      `<span style="color:#666;">${formatTime(difference)} remaining</span>`
+  }
+}
 function updateTrackBuilderFormat() {
   const currentSize = size.value
   const currentRPM = rpm.value
