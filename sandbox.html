@@ -346,7 +346,7 @@ Clear is standard. Coloured vinyl is purely aesthetic — sound quality is the s
 </select>
 
 <div style="margin-top:14px;">
-
+<input type="hidden" name="Packaging" id="packagingValue" value="Standard">
 
 <div style="display:flex;flex-direction:column;gap:10px;">
 
@@ -806,10 +806,25 @@ qty.addEventListener("input",updatePrice)
 rush.addEventListener("change",updatePrice)
 document.getElementById("shipCheck").addEventListener("change", updatePrice)
 document.getElementById("colour")?.addEventListener("change", updatePrice)
-document.querySelectorAll('input[name="extras"]').forEach(el => {
-  el.addEventListener("change", updatePrice)
-})
 
+document.querySelectorAll('input[name="extras"]').forEach(el => {
+  el.addEventListener("change", () => {
+
+    const packagingValue = document.getElementById("packagingValue")
+
+    if (el.value === "printed") {
+      packagingValue.value = "Printed Jacket + Labels"
+    }
+    else if (el.value === "custom") {
+      packagingValue.value = "Custom Finish Pack"
+    }
+    else {
+      packagingValue.value = "Standard"
+    }
+
+    updatePrice()
+  })
+})
 
 updateRuntime()
 updatePrice()
