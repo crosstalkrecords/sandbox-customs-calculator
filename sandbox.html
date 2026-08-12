@@ -957,13 +957,35 @@ const trackBuilderOverlay = document.getElementById("trackBuilderOverlay")
 const openTrackBuilder = document.getElementById("openTrackBuilder")
 const closeTrackBuilder = document.getElementById("closeTrackBuilder")
 
+function openTrackBuilderModal() {
+  trackBuilderOverlay.style.display = "block"
+  document.body.style.overflow = "hidden"
+}
+
+function closeTrackBuilderModal() {
+  trackBuilderOverlay.style.display = "none"
+  document.body.style.overflow = ""
+}
+
 openTrackBuilder.addEventListener("click", (e) => {
   e.preventDefault()
-  trackBuilderOverlay.style.display = "block"
+  openTrackBuilderModal()
 })
 
 closeTrackBuilder.addEventListener("click", () => {
-  trackBuilderOverlay.style.display = "none"
+  closeTrackBuilderModal()
+})
+
+trackBuilderOverlay.addEventListener("click", (e) => {
+  if (e.target === trackBuilderOverlay) {
+    closeTrackBuilderModal()
+  }
+})
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && trackBuilderOverlay.style.display === "block") {
+    closeTrackBuilderModal()
+  }
 })
 
 // =====================================================
