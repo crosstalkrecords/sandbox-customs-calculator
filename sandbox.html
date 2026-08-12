@@ -550,12 +550,80 @@ Don’t worry about formatting — we’ll clean it up before cutting.
 </div>
 
 <div style="margin-top:10px; font-size:13px;">
-Need help organising your record? 
-<a href="#" onclick="alert('Track Builder launching soon!'); return false;" style="color:#c9302c; font-weight:600;">
+Need help organising your record?
+<a href="#" id="openTrackBuilder" style="color:#c9302c; font-weight:600;">
 Use our Track Builder →
 </a>
 </div>
+<!-- =====================================================
+V1.5 PATCH C START — TRACK BUILDER
+===================================================== -->
 
+<div id="trackBuilderOverlay" style="
+display:none;
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.55);
+z-index:99999;
+padding:20px;
+box-sizing:border-box;
+overflow-y:auto;
+">
+
+<div id="trackBuilderModal" style="
+max-width:620px;
+margin:40px auto;
+background:#fff;
+border-radius:16px;
+padding:22px;
+box-sizing:border-box;
+box-shadow:0 20px 60px rgba(0,0,0,.25);
+">
+
+<div style="
+display:flex;
+justify-content:space-between;
+align-items:center;
+gap:16px;
+margin-bottom:8px;
+">
+
+<div style="
+font-size:22px;
+font-weight:800;
+">
+Track Builder
+</div>
+
+<button type="button" id="closeTrackBuilder" style="
+width:auto;
+margin:0;
+padding:8px 12px;
+font-size:13px;
+background:#eee;
+color:#333;
+box-shadow:none;
+">
+Close
+</button>
+
+</div>
+
+<div style="
+font-size:13px;
+color:#666;
+line-height:1.5;
+">
+Build and check your tracklist before adding it to your order.
+</div>
+
+</div>
+
+</div>
+
+<!-- =====================================================
+V1.5 PATCH C END — TRACK BUILDER
+===================================================== -->
 <div style="display:none;">
 <label>Instagram (optional)</label>
 <input type="text" name="Custom Field 2">
@@ -881,7 +949,26 @@ const shippingFields=document.getElementById("shippingFields")
 shipCheck.addEventListener("change",()=>{
 shippingFields.classList.toggle("open")
 })
+// =====================================================
+// V1.5 PATCH C START — TRACK BUILDER EVENTS
+// =====================================================
 
+const trackBuilderOverlay = document.getElementById("trackBuilderOverlay")
+const openTrackBuilder = document.getElementById("openTrackBuilder")
+const closeTrackBuilder = document.getElementById("closeTrackBuilder")
+
+openTrackBuilder.addEventListener("click", (e) => {
+  e.preventDefault()
+  trackBuilderOverlay.style.display = "block"
+})
+
+closeTrackBuilder.addEventListener("click", () => {
+  trackBuilderOverlay.style.display = "none"
+})
+
+// =====================================================
+// V1.5 PATCH C END — TRACK BUILDER EVENTS
+// =====================================================
 document.getElementById("orderForm").addEventListener("submit", async function(e){
 
 e.preventDefault()
