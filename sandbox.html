@@ -1094,7 +1094,8 @@ const trackBuilderSideAList = document.getElementById("trackBuilderSideAList")
 const trackBuilderSideBList = document.getElementById("trackBuilderSideBList")
 const trackBuilderSideATime = document.getElementById("trackBuilderSideATime")
 const trackBuilderSideBTime = document.getElementById("trackBuilderSideBTime")
-
+const applyTrackBuilder = document.getElementById("applyTrackBuilder")
+const tracklistField = document.querySelector('textarea[name="tracklist"]')
 const trackBuilderTracks = {
   A: [],
   B: []
@@ -1314,6 +1315,37 @@ addTrackB.addEventListener("click", () => {
   })
 
   renderTrackBuilderSide("B")
+})
+
+applyTrackBuilder.addEventListener("click", () => {
+  const buildSideText = (side) => {
+    return trackBuilderTracks[side]
+      .filter(track => track.title.trim() !== "")
+      .map((track, index) => {
+        const title = track.title.trim()
+        const duration = track.duration.trim()
+
+        return duration
+          ? `${index + 1}. ${title} — ${duration}`
+          : `${index + 1}. ${title}`
+      })
+      .join("\n")
+  }
+
+  const sideA = buildSideText("A")
+  const sideB = buildSideText("B")
+
+  const builtTracklist =
+`SIDE A
+
+${sideA || "No tracks listed"}
+
+SIDE B
+
+${sideB || "No tracks listed"}`
+
+  tracklistField.value = builtTracklist
+  closeTrackBuilderModal()
 })
 // =====================================================
 // V1.5 PATCH C END — TRACK BUILDER EVENTS
