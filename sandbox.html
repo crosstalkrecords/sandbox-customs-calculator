@@ -1100,6 +1100,7 @@ const trackBuilderTracks = {
   A: [],
   B: []
 }
+let lastTrackBuilderOutput = ""
 function trackBuilderDurationToSeconds(value) {
   let clean = value.trim()
 
@@ -1344,8 +1345,26 @@ SIDE B
 
 ${sideB || "No tracks listed"}`
 
-  tracklistField.value = builtTracklist
-  closeTrackBuilderModal()
+const existingTracklist = tracklistField.value.trim()
+
+const canReplaceImmediately =
+  existingTracklist === "" ||
+  existingTracklist === lastTrackBuilderOutput.trim()
+
+if (!canReplaceImmediately) {
+  const confirmed = window.confirm(
+    "You already have a track listing entered. Replace it with the Track Builder version?"
+  )
+
+  if (!confirmed) {
+    return
+  }
+}
+
+tracklistField.value = builtTracklist
+lastTrackBuilderOutput = builtTracklist
+
+closeTrackBuilderModal()
 })
 // =====================================================
 // V1.5 PATCH C END — TRACK BUILDER EVENTS
