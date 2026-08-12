@@ -1065,6 +1065,116 @@ const trackBuilderOverlay = document.getElementById("trackBuilderOverlay")
 const openTrackBuilder = document.getElementById("openTrackBuilder")
 const closeTrackBuilder = document.getElementById("closeTrackBuilder")
 const trackBuilderFormat = document.getElementById("trackBuilderFormat")
+const addTrackA = document.getElementById("addTrackA")
+const addTrackB = document.getElementById("addTrackB")
+const trackBuilderSideAList = document.getElementById("trackBuilderSideAList")
+const trackBuilderSideBList = document.getElementById("trackBuilderSideBList")
+const trackBuilderSideATime = document.getElementById("trackBuilderSideATime")
+const trackBuilderSideBTime = document.getElementById("trackBuilderSideBTime")
+
+const trackBuilderTracks = {
+  A: [],
+  B: []
+}
+function trackBuilderDurationToSeconds(value) {
+  const clean = value.trim()
+
+  if (!/^\d+:\d{2}$/.test(clean)) {
+    return 0
+  }
+
+  const parts = clean.split(":")
+  const minutes = Number(parts[0])
+  const seconds = Number(parts[1])
+
+  if (seconds > 59) {
+    return 0
+  }
+
+  return (minutes * 60) + seconds
+}
+function renderTrackBuilderSide(side) {
+  const tracks = trackBuilderTracks[side]
+  const list = side === "A" ? trackBuilderSideAList : trackBuilderSideBList
+  const timeDisplay = side === "A" ? trackBuilderSideATime : trackBuilderSideBTime
+
+  if (tracks.length === 0) {
+    list.innerHTML = "No tracks added yet."
+    timeDisplay.textContent = "0:00"
+    return
+  }
+
+  list.innerHTML = ""
+
+  tracks.forEach((track, index) => {
+    const row = document.createElement("div")
+
+    row.style.display = "grid"
+    row.style.gridTemplateColumns = "1fr 72px auto"
+    row.style.gap = "6px"
+    row.style.alignItems = "center"
+    row.style.marginBottom = "8px"
+
+    const titleInput = document.createElement("input")
+    titleInput.type = "text"
+    titleInput.placeholder = `Track ${index + 1}`
+    titleInput.value = track.title
+    titleInput.style.fontSize = "12px"
+    titleInput.style.padding = "8px"
+
+    const durationInput = document.createElement("input")
+    durationInput.type = "text"
+    durationInput.placeholder = "m:ss"
+    durationInput.value = track.duration
+    durationInput.inputMode = "numeric"
+    durationInput.style.fontSize = "12px"
+    durationInput.style.padding = "8px"
+
+    const removeButton = document.createElement("button")
+    removeButton.type = "button"
+    removeButton.textContent = "×"
+    removeButton.setAttribute("aria-label", `Remove track ${index + 1}`)
+    removeButton.style.width = "32px"
+    removeButton.style.height = "32px"
+    removeButton.style.margin = "0"
+    removeButton.style.padding = "0"
+    removeButton.style.background = "#eee"
+    removeButton.style.color = "#555"
+    removeButton.style.boxShadow = "none"
+
+    titleInput.addEventListener("input", () => {
+      track.title = titleInput.value
+    })
+
+    durationInput.addEventListener("input", () => {
+      track.duration = durationInput.value
+      updateTrackBuilderSideTime(side)
+    })
+
+    removeButton.addEventListener("click", () => {
+      tracks.splice(index, 1)
+      renderTrackBuilderSide(side)
+    })
+
+    row.appendChild(titleInput)
+    row.appendChild(durationInput)
+    row.appendChild(removeButton)
+
+    list.appendChild(row)
+  })
+
+  updateTrackBuilderSideTime(side)
+}
+function updateTrackBuilderSideTime(side) {
+  const tracks = trackBuilderTracks[side]
+  const timeDisplay = side === "A" ? trackBuilderSideATime : trackBuilderSideBTime
+
+  const totalSeconds = tracks.reduce((total, track) => {
+    return total + trackBuilderDurationToSeconds(track.duration)
+  }, 0)
+
+  timeDisplay.textContent = formatTime(totalSeconds)
+}
 
 function updateTrackBuilderFormat() {
   const currentSize = size.value
@@ -1106,7 +1216,23 @@ document.addEventListener("keydown", (e) => {
     closeTrackBuilderModal()
   }
 })
+addTrackA.addEventListener("click", () => {
+  trackBuilderTracks.A.push({
+    title: "",
+    duration: ""
+  })
 
+  renderTrackBuilderSide("A")
+})
+
+addTrackB.addEventListener("click", () => {
+  trackBuilderTracks.B.push({
+    title: "",
+    duration: ""
+  })
+
+  renderTrackBuilderSide("B")
+})
 // =====================================================
 // V1.5 PATCH C END — TRACK BUILDER EVENTS
 // =====================================================
