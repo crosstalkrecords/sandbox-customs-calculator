@@ -731,8 +731,7 @@ function updatePrice(){
 
 let table = (artistOrder.value === "Yes") ? artistPrices : retailPrices
 
-let base = table[size.value]["Single"]
-
+let base = table[size.value]["Double"]
 let total = base * Number(qty.value || 1)
 const colourVal = document.getElementById("colour").value
 
