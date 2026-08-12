@@ -1208,6 +1208,7 @@ durationInput.addEventListener("blur", () => {
 function updateTrackBuilderSideTime(side) {
   const tracks = trackBuilderTracks[side]
   const timeDisplay = side === "A" ? trackBuilderSideATime : trackBuilderSideBTime
+  const sideCard = timeDisplay.parentElement
 
   const totalSeconds = tracks.reduce((total, track) => {
     return total + trackBuilderDurationToSeconds(track.duration)
@@ -1218,14 +1219,21 @@ function updateTrackBuilderSideTime(side) {
   const difference = limitSeconds - totalSeconds
 
   if (totalSeconds > limitSeconds) {
-    timeDisplay.innerHTML =
-      `<strong>${formatTime(totalSeconds)} / ${limitString}</strong> · ` +
-      `<span style="color:#c9302c;font-weight:700;">${formatTime(Math.abs(difference))} OVER</span>`
-  } else {
-    timeDisplay.innerHTML =
-      `<strong>${formatTime(totalSeconds)} / ${limitString}</strong> · ` +
-      `<span style="color:#666;">${formatTime(difference)} remaining</span>`
-  }
+  timeDisplay.innerHTML =
+    `<strong>${formatTime(totalSeconds)} / ${limitString}</strong> · ` +
+    `<span style="color:#c9302c;font-weight:700;">${formatTime(Math.abs(difference))} OVER</span>`
+
+  sideCard.style.borderColor = "#e2b4b4"
+  sideCard.style.background = "#fff8f8"
+
+} else {
+  timeDisplay.innerHTML =
+    `<strong>${formatTime(totalSeconds)} / ${limitString}</strong> · ` +
+    `<span style="color:#666;">${formatTime(difference)} remaining</span>`
+
+  sideCard.style.borderColor = "#e5e5e5"
+  sideCard.style.background = "#fff"
+}
 }
 function updateTrackBuilderFormat() {
   const currentSize = size.value
