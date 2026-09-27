@@ -11,6 +11,8 @@
   const API_URL = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/dist/face-api.js";
   const MODEL_URL = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/model";
   const COVER_SELECTOR = ".tile.releaseItem .artwork img, main a[href^='/release/'] img, main img[alt*=' | ']";
+  const BONNIE_SELECTOR = ".xt-hero-img, img[alt*='bonnie' i], img[src*='bonnie' i]";
+  const IMAGE_SELECTOR = `${COVER_SELECTOR}, ${BONNIE_SELECTOR}`;
   const GOOD_TASTE_ARTISTS = [
     "amy winehouse", "nirvana", "kurt cobain", "joy division", "ian curtis",
     "linkin park", "chester bennington", "soundgarden", "audioslave", "chris cornell",
@@ -60,6 +62,7 @@
       display: none; overflow: hidden !important; border-radius: inherit;
       pointer-events: none !important;
     }
+    .xt-eliza-layer.xt-eliza-image-layer { inset: auto !important; }
     html.xt-eliza-on .xt-eliza-layer { display: block; }
     .xt-eliza-eye {
       position: absolute !important; display: block !important; aspect-ratio: 1/1;
@@ -296,6 +299,20 @@
     };
   }
 
+  function bonnieFacesFor(img) {
+    const src = (img.currentSrc || img.src || "").toLowerCase();
+    const alt = (img.alt || "").toLowerCase();
+    if (img.classList.contains("xt-hero-img") || src.includes("c5wesat")) {
+      // Bonnie's astronaut head inside the wide Crosstalk homepage artwork.
+      return [{ lx: .390, ly: .570, rx: .410, ry: .582, size: .026 }];
+    }
+    if (src.includes("bonnie") || alt.includes("bonnie")) {
+      // A tightly cropped Bonnie head/icon used elsewhere on the site.
+      return [{ lx: .55, ly: .39, rx: .66, ry: .42, size: .13 }];
+    }
+    return null;
+  }
+
   function addEye(layer, x, y, size, index) {
     const eye = document.createElement("span");
     eye.className = "xt-eliza-eye";
@@ -309,7 +326,17 @@
     layer.appendChild(eye);
   }
 
-  function render(img, faces) {
+  function alignLayerToImage(layer, img, host) {
+    const imageRect = img.getBoundingClientRect();
+    const hostRect = host.getBoundingClientRect();
+    layer.classList.add("xt-eliza-image-layer");
+    layer.style.setProperty("left", `${imageRect.left - hostRect.left}px`, "important");
+    layer.style.setProperty("top", `${imageRect.top - hostRect.top}px`, "important");
+    layer.style.setProperty("width", `${imageRect.width}px`, "important");
+    layer.style.setProperty("height", `${imageRect.height}px`, "important");
+  }
+
+  function render(img, faces, alignToImage = false) {
     if (!faces.length || !img.isConnected) return;
     const host = img.closest(".artwork") || img.parentElement;
     if (!host) return;
@@ -321,6 +348,13 @@
       layer.setAttribute("aria-hidden", "true");
       host.appendChild(layer);
     }
+    if (alignToImage) {
+      alignLayerToImage(layer, img, host);
+      if (!img._xtElizaResizeObserver && "ResizeObserver" in window) {
+        img._xtElizaResizeObserver = new ResizeObserver(() => alignLayerToImage(layer, img, host));
+        img._xtElizaResizeObserver.observe(img);
+      }
+    }
     layer.replaceChildren();
     faces.forEach((face, i) => {
       addEye(layer, face.lx, face.ly, face.size, i * 2);
@@ -330,6 +364,11 @@
 
   async function analyse(img) {
     if (!enabled || processed.has(img)) return;
+    const bonnieFaces = bonnieFacesFor(img);
+    if (bonnieFaces) {
+      processed.add(img);
+      return render(img, bonnieFaces, true);
+    }
     const rect = img.getBoundingClientRect();
     if (rect.width < 105 || rect.height < 105) return;
     if (!passesGoodTaste(img)) {
@@ -429,8 +468,8 @@
     const images = [];
     // Common Ground frequently inserts the <img> itself as the mutation node.
     // querySelectorAll() only searches descendants, so include that node too.
-    if (root instanceof Element && root.matches(COVER_SELECTOR)) images.push(root);
-    if (root.querySelectorAll) images.push(...root.querySelectorAll(COVER_SELECTOR));
+    if (root instanceof Element && root.matches(IMAGE_SELECTOR)) images.push(root);
+    if (root.querySelectorAll) images.push(...root.querySelectorAll(IMAGE_SELECTOR));
     images.forEach(img => {
       if (!observed.has(img)) { observed.add(img); io.observe(img); }
     });
