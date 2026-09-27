@@ -7,7 +7,7 @@
   window.__xtElizaModeInstalled = true;
 
   const ENABLED_KEY = "xt-eliza-enabled-v2";
-  const CACHE_KEY = "xt-eliza-cache-v10";
+  const CACHE_KEY = "xt-eliza-cache-v11";
   const API_URL = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/dist/face-api.js";
   const MODEL_URL = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/model";
   const COVER_SELECTOR = ".tile.releaseItem .artwork img, main a[href^='/release/'] img, main img[alt*=' | ']";
@@ -451,7 +451,7 @@
     layer.style.setProperty("height", `${imageRect.height}px`, "important");
   }
 
-  function render(img, faces, alignToImage = false) {
+  function render(img, faces, alignToImage = true) {
     if (!faces.length || !img.isConnected) return;
     const host = img.closest(".artwork") || img.parentElement;
     if (!host) return;
@@ -480,13 +480,19 @@
   async function analyse(img) {
     if (!enabled || processed.has(img)) return;
     const bonnieFaces = bonnieFacesFor(img);
-    const fixedFaces = bonnieFaces || manualArtworkFacesFor(img);
-    if (fixedFaces) {
+    if (bonnieFaces) {
       processed.add(img);
-      return render(img, fixedFaces, Boolean(bonnieFaces));
+      return render(img, bonnieFaces, true);
     }
     const rect = img.getBoundingClientRect();
+    // Product pages reuse the release metadata on artwork thumbnails. Never
+    // treat those alternate/back-cover/label images as the front cover.
     if (rect.width < 105 || rect.height < 105) return;
+    const fixedFaces = manualArtworkFacesFor(img);
+    if (fixedFaces) {
+      processed.add(img);
+      return render(img, fixedFaces, true);
+    }
     if (!passesGoodTaste(img)) {
       processed.add(img);
       return;
