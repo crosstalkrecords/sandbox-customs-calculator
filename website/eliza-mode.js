@@ -7,7 +7,7 @@
   window.__xtElizaModeInstalled = true;
 
   const ENABLED_KEY = "xt-eliza-enabled-v2";
-  const CACHE_KEY = "xt-eliza-cache-v9";
+  const CACHE_KEY = "xt-eliza-cache-v10";
   const API_URL = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/dist/face-api.js";
   const MODEL_URL = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/model";
   const COVER_SELECTOR = ".tile.releaseItem .artwork img, main a[href^='/release/'] img, main img[alt*=' | ']";
@@ -93,17 +93,19 @@
     {
       terms: ["simon & garfunkel", "bookends"],
       faces: [
-        { lx: .245, ly: .390, rx: .350, ry: .395, size: .060 },
-        { lx: .650, ly: .345, rx: .755, ry: .330, size: .058 }
+        { lx: .205, ly: .452, rx: .353, ry: .474, size: .058 },
+        { lx: .575, ly: .310, rx: .685, ry: .250, size: .056 }
       ]
     },
     {
       terms: ["the cure", "disintegration"],
-      faces: [{ lx: .265, ly: .330, rx: .382, ry: .306, size: .058 }]
+      // Robert Smith's pale, tilted face occupies the lower-left quadrant;
+      // the high-contrast shapes above it are flowers, not a second face.
+      faces: [{ lx: .338, ly: .505, rx: .425, ry: .585, size: .052 }]
     },
     {
       terms: ["madvillainy"],
-      faces: [{ lx: .392, ly: .515, rx: .610, ry: .515, size: .066 }]
+      faces: [{ lx: .350, ly: .450, rx: .610, ry: .440, size: .064 }]
     },
     {
       terms: ["björk", "debut"],
