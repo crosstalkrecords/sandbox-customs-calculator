@@ -153,7 +153,17 @@
     if (apiPromise) return apiPromise;
     syncButton(true);
     apiPromise = loadScript()
-      .then(() => window.faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL))
+      .then(async () => {
+        // The bundled detector prefers WebGL and then WASM. Common Ground pages
+        // can run in browsers where WebGL is unavailable and the bundle cannot
+        // locate its WASM binary, so use the always-available CPU backend.
+        const tf = window.faceapi && window.faceapi.tf;
+        if (tf && typeof tf.setBackend === "function") {
+          await tf.setBackend("cpu");
+          if (typeof tf.ready === "function") await tf.ready();
+        }
+        return window.faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+      })
       .then(() => { detectorReady = true; syncButton(false); })
       .catch(error => {
         console.warn("Eliza Mode could not load:", error);
@@ -267,8 +277,13 @@
   }
 
   function observe(root = document) {
-    if (!enabled || !io || !root.querySelectorAll) return;
-    root.querySelectorAll(COVER_SELECTOR).forEach(img => {
+    if (!enabled || !io) return;
+    const images = [];
+    // Common Ground frequently inserts the <img> itself as the mutation node.
+    // querySelectorAll() only searches descendants, so include that node too.
+    if (root instanceof Element && root.matches(COVER_SELECTOR)) images.push(root);
+    if (root.querySelectorAll) images.push(...root.querySelectorAll(COVER_SELECTOR));
+    images.forEach(img => {
       if (!observed.has(img)) { observed.add(img); io.observe(img); }
     });
   }
@@ -286,6 +301,10 @@
     }
     mo.observe(document.body, { childList: true, subtree: true });
     observe(document);
+    // The shop grid is rendered asynchronously after the head script executes.
+    // These inexpensive rescans cover render batches that land between setup
+    // and the first mutation callback.
+    [250, 900, 2200].forEach(delay => setTimeout(() => observe(document), delay));
   }
 
   function stop() {
@@ -311,4 +330,3 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init, { once: true });
   else init();
 })();
-
