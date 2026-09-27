@@ -7,7 +7,7 @@
   window.__xtElizaModeInstalled = true;
 
   const ENABLED_KEY = "xt-eliza-enabled-v2";
-  const CACHE_KEY = "xt-eliza-cache-v8";
+  const CACHE_KEY = "xt-eliza-cache-v9";
   const API_URL = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/dist/face-api.js";
   const MODEL_URL = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/model";
   const COVER_SELECTOR = ".tile.releaseItem .artwork img, main a[href^='/release/'] img, main img[alt*=' | ']";
@@ -93,8 +93,8 @@
     {
       terms: ["simon & garfunkel", "bookends"],
       faces: [
-        { lx: .235, ly: .300, rx: .370, ry: .305, size: .065 },
-        { lx: .650, ly: .275, rx: .770, ry: .260, size: .060 }
+        { lx: .245, ly: .390, rx: .350, ry: .395, size: .060 },
+        { lx: .650, ly: .345, rx: .755, ry: .330, size: .058 }
       ]
     },
     {
@@ -103,11 +103,28 @@
     },
     {
       terms: ["madvillainy"],
-      faces: [{ lx: .384, ly: .428, rx: .620, ry: .428, size: .070 }]
+      faces: [{ lx: .392, ly: .515, rx: .610, ry: .515, size: .066 }]
     },
     {
       terms: ["björk", "debut"],
-      faces: [{ lx: .414, ly: .275, rx: .583, ry: .275, size: .060 }]
+      faces: [{ lx: .420, ly: .310, rx: .575, ry: .310, size: .058 }]
+    },
+    {
+      terms: ["madonna", "like a prayer"],
+      // No face is present on this crop; jewellery was being mistaken for one.
+      faces: []
+    },
+    {
+      terms: ["elton john", "honky château"],
+      faces: [{ lx: .535, ly: .455, rx: .720, ry: .455, size: .062 }]
+    },
+    {
+      terms: ["bob marley", "kaya"],
+      faces: [{ lx: .385, ly: .355, rx: .555, ry: .355, size: .060 }]
+    },
+    {
+      terms: ["kendrick lamar", "damn"],
+      faces: [{ lx: .485, ly: .330, rx: .615, ry: .350, size: .055 }]
     }
   ];
 
