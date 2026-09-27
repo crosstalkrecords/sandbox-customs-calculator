@@ -93,6 +93,7 @@
   let busy = false;
   let observed = new WeakSet();
   let processed = new WeakSet();
+  const cleanImages = new Map();
 
   try { cache = JSON.parse(localStorage.getItem(CACHE_KEY) || "{}"); }
   catch (_) { cache = {}; }
@@ -192,6 +193,23 @@
     } catch (_) {}
   }
 
+  function cleanImageFor(img) {
+    const src = img.currentSrc || img.src;
+    if (!src) return Promise.reject(new Error("Cover has no image URL"));
+    if (cleanImages.has(src)) return cleanImages.get(src);
+    const request = new Promise((resolve, reject) => {
+      const clean = new Image();
+      clean.crossOrigin = "anonymous";
+      clean.decoding = "async";
+      clean.onload = () => resolve(clean);
+      clean.onerror = () => reject(new Error(`Cover CDN blocked CORS access: ${src}`));
+      clean.src = src;
+    });
+    cleanImages.set(src, request);
+    request.catch(() => cleanImages.delete(src));
+    return request;
+  }
+
   function addEye(layer, x, y, size, index) {
     const eye = document.createElement("span");
     eye.className = "xt-eliza-eye";
@@ -230,19 +248,24 @@
     if (!enabled || processed.has(img)) return;
     const rect = img.getBoundingClientRect();
     if (rect.width < 105 || rect.height < 105) return;
-    processed.add(img);
     const key = keyFor(img);
-    if (cache[key]) return render(img, cache[key]);
+    if (cache[key]) {
+      processed.add(img);
+      return render(img, cache[key]);
+    }
     try {
       if (!img.complete || !img.naturalWidth) await img.decode();
       await ensureDetector();
       if (!enabled) return;
+      // The storefront's visible <img> elements omit crossorigin, which taints
+      // any canvas used by TensorFlow. Analyse a CORS-enabled copy instead.
+      const source = await cleanImageFor(img);
       const results = await window.faceapi.detectAllFaces(
-        img,
+        source,
         new window.faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: .46 })
       );
-      const w = img.naturalWidth || 1;
-      const h = img.naturalHeight || 1;
+      const w = source.naturalWidth || 1;
+      const h = source.naturalHeight || 1;
       const faces = results.slice(0, 12).map(result => {
         const b = result.box;
         return {
@@ -254,6 +277,7 @@
       });
       cache[key] = faces;
       saveCache();
+      processed.add(img);
       render(img, faces);
     } catch (error) {
       console.warn("Eliza Mode skipped a cover:", error);
