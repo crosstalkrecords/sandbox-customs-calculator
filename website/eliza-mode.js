@@ -7,7 +7,7 @@
   window.__xtElizaModeInstalled = true;
 
   const ENABLED_KEY = "xt-eliza-enabled-v2";
-  const CACHE_KEY = "xt-eliza-cache-v6";
+  const CACHE_KEY = "xt-eliza-cache-v7";
   const API_URL = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/dist/face-api.js";
   const MODEL_URL = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/model";
   const COVER_SELECTOR = ".tile.releaseItem .artwork img, main a[href^='/release/'] img, main img[alt*=' | ']";
@@ -184,7 +184,11 @@
         }
         return Promise.all([
           window.faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
-          window.faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL)
+          // The tiny landmark model is fast, but on stylised album artwork it
+          // regularly puts the eye line on cheeks (most visibly Kylie and
+          // Hole). The full landmark model is still small compared with the
+          // detector and is materially more accurate here.
+          window.faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL)
         ]);
       })
       .then(() => { detectorReady = true; syncButton(false); })
@@ -344,21 +348,26 @@
       // The storefront's visible <img> elements omit crossorigin, which taints
       // any canvas used by TensorFlow. Analyse a CORS-enabled copy instead.
       const source = await cleanImageFor(img);
-      const strict = await window.faceapi.detectAllFaces(
-        source,
-        new window.faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: .54 })
-      ).withFaceLandmarks(true);
-      const playful = await window.faceapi.detectAllFaces(
+      // One permissive detector pass is enough: a low threshold already
+      // contains every result from the former strict pass. Running both was
+      // doubling the slowest part of the work on every uncached cover.
+      const candidates = await window.faceapi.detectAllFaces(
         source,
         new window.faceapi.TinyFaceDetectorOptions({ inputSize: 512, scoreThreshold: .34 })
-      ).withFaceLandmarks(true);
-      const results = strict.slice();
-      playful.forEach(candidate => {
+      ).withFaceLandmarks();
+      const results = [];
+      candidates.forEach(candidate => {
         const box = candidate.detection.box;
         const centreX = (box.x + box.width / 2) / source.naturalWidth;
         const centreY = (box.y + box.height / 2) / source.naturalHeight;
-        const largeEnough = box.width >= source.naturalWidth * .12;
-        const safelyFramed = centreX > .14 && centreX < .86 && centreY > .08 && centreY < .88;
+        const confidence = candidate.detection.score || 0;
+        // Confident detections may be smaller (band portraits and animal
+        // heads); uncertain detections still need to be large and central.
+        const highConfidence = confidence >= .50;
+        const largeEnough = box.width >= source.naturalWidth * (highConfidence ? .07 : .12);
+        const edge = highConfidence ? .06 : .14;
+        const safelyFramed = centreX > edge && centreX < 1 - edge &&
+          centreY > .06 && centreY < .91;
         if (largeEnough && safelyFramed && !results.some(existing => sameFace(existing, candidate))) {
           results.push(candidate);
         }
