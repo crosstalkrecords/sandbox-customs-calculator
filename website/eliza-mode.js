@@ -155,12 +155,14 @@
     syncButton(true);
     apiPromise = loadScript()
       .then(async () => {
-        // The bundled detector prefers WebGL and then WASM. Common Ground pages
-        // can run in browsers where WebGL is unavailable and the bundle cannot
-        // locate its WASM binary, so use the always-available CPU backend.
+        // Prefer WebGL for speed, but skip the bundle's broken automatic WASM
+        // fallback and use the always-available CPU backend when necessary.
         const tf = window.faceapi && window.faceapi.tf;
         if (tf && typeof tf.setBackend === "function") {
-          await tf.setBackend("cpu");
+          let ready = false;
+          try { ready = await tf.setBackend("webgl"); }
+          catch (_) { ready = false; }
+          if (!ready) await tf.setBackend("cpu");
           if (typeof tf.ready === "function") await tf.ready();
         }
         return window.faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
