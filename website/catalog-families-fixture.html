@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Crosstalk catalogue family fixture</title>
+  <style>
+    body { margin: 0; padding: 32px; font: 16px/1.4 system-ui, sans-serif; background: #f4f0e8; color: #151515; }
+    h1, h2 { margin: 0 0 20px; }
+    section { margin-bottom: 36px; }
+    #catalogue { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+    .card, .offer { padding: 16px; border: 1px solid #c9c1b5; border-radius: 12px; background: #fffdf9; }
+    .cover { display: block; width: 100%; aspect-ratio: 1; margin-bottom: 12px; background: #29243b; }
+    .offer { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    button { padding: 10px 14px; }
+  </style>
+  <script>history.replaceState({}, '', '/release/25815409/test');</script>
+  <script defer src="./catalog-families.js"></script>
+</head>
+<body>
+  <header><a href="/release/93635/nav-only">Navigation release link must remain</a></header>
+  <main>
+    <h1>Catalogue family test</h1>
+    <section id="catalogue" aria-label="Catalogue results">
+      <article class="card" id="family-available">
+        <a href="/release/93635/a-tribe-called-quest-midnight-marauders"><span class="cover"></span></a>
+        <a href="/release/93635/a-tribe-called-quest-midnight-marauders">Midnight Marauders</a>
+        <p>A$65.00</p>
+      </article>
+      <article class="card" id="family-sold-out">
+        <a href="/release/14270021/a-tribe-called-quest-midnight-marauders"><span class="cover"></span></a>
+        <a href="/release/14270021/a-tribe-called-quest-midnight-marauders">Midnight Marauders</a>
+        <p>Sold out</p>
+      </article>
+      <article class="card" id="unmapped-release">
+        <a href="/release/35514037/radiohead-live"><span class="cover"></span></a>
+        <a href="/release/35514037/radiohead-live">Distinct special edition</a>
+        <p>Sold out</p>
+      </article>
+    </section>
+
+    <section id="offers" aria-label="Release offers">
+      <h2>Release offers</h2>
+      <div class="offer" id="offer-available-1"><span>A$65.00<br><small>*TAXES INCLUDED, SHIPPING PRICE EXCLUDED</small></span><button>ADD TO BASKET</button></div>
+      <div class="offer" id="offer-available-2"><span>A$65.00<br><small>*TAXES INCLUDED, SHIPPING PRICE EXCLUDED</small></span><button>ADD TO BASKET</button></div>
+      <div class="offer" id="offer-sold-out"><span>A$65.00<br><small>*TAXES INCLUDED, SHIPPING PRICE EXCLUDED</small></span><button>SOLD OUT</button></div>
+      <div class="offer" id="offer-distinct"><span>A$75.00<br><small>*TAXES INCLUDED, SHIPPING PRICE EXCLUDED</small></span><button>SOLD OUT</button></div>
+    </section>
+  </main>
+  <script>
+    window.setTimeout(() => {
+      const card = document.createElement('article');
+      card.className = 'card';
+      card.id = 'family-dynamic';
+      const imageLink = document.createElement('a');
+      imageLink.href = '/release/24877808/a-tribe-called-quest-midnight-marauders';
+      const cover = document.createElement('span');
+      cover.className = 'cover';
+      imageLink.appendChild(cover);
+      const titleLink = document.createElement('a');
+      titleLink.href = imageLink.href;
+      titleLink.textContent = 'Midnight Marauders';
+      const status = document.createElement('p');
+      status.textContent = 'Sold out';
+      card.append(imageLink, titleLink, status);
+      document.getElementById('catalogue').appendChild(card);
+    }, 250);
+  </script>
+</body>
+</html>
