@@ -7,7 +7,7 @@
   window.__xtElizaModeInstalled = true;
 
   const ENABLED_KEY = "xt-eliza-enabled-v2";
-  const CACHE_KEY = "xt-eliza-cache-v4";
+  const CACHE_KEY = "xt-eliza-cache-v5";
   const API_URL = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/dist/face-api.js";
   const MODEL_URL = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/model";
   const COVER_SELECTOR = ".tile.releaseItem .artwork img, main a[href^='/release/'] img, main img[alt*=' | ']";
@@ -144,11 +144,10 @@
     const wrap = document.createElement("div");
     wrap.className = "xt-eliza-toggle-wrap";
     wrap.innerHTML = '<button class="xt-eliza-toggle" type="button" aria-pressed="false"><span class="xt-eliza-label">Eliza Mode: Off</span><span class="xt-eliza-switch" aria-hidden="true"></span></button>';
-    const hero = document.querySelector(".xt-hero");
-    const nav = document.querySelector("nav.menu.header,.menu.header");
-    if (hero && hero.parentNode) hero.parentNode.insertBefore(wrap, hero);
-    else if (nav) nav.insertAdjacentElement("afterend", wrap);
-    else document.body.insertAdjacentElement("afterbegin", wrap);
+    // Keep this outside Common Ground's transformed content container.
+    // A fixed element inside that container is positioned against the app,
+    // not the viewport, which pushed the control offscreen at some widths.
+    document.body.appendChild(wrap);
     button = wrap.querySelector("button");
     button.addEventListener("click", () => setEnabled(!enabled, true));
     syncButton();
@@ -343,7 +342,10 @@
       ).withFaceLandmarks(true);
       const results = strict.slice();
       playful.forEach(candidate => {
-        if (!results.some(existing => sameFace(existing, candidate))) results.push(candidate);
+        const largeEnough = candidate.detection.box.width >= source.naturalWidth * .12;
+        if (largeEnough && !results.some(existing => sameFace(existing, candidate))) {
+          results.push(candidate);
+        }
       });
       const w = source.naturalWidth || 1;
       const h = source.naturalHeight || 1;
