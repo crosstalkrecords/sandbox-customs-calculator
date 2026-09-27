@@ -7,7 +7,7 @@
   window.__xtElizaModeInstalled = true;
 
   const ENABLED_KEY = "xt-eliza-enabled-v2";
-  const CACHE_KEY = "xt-eliza-cache-v3";
+  const CACHE_KEY = "xt-eliza-cache-v4";
   const API_URL = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/dist/face-api.js";
   const MODEL_URL = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/model";
   const COVER_SELECTOR = ".tile.releaseItem .artwork img, main a[href^='/release/'] img, main img[alt*=' | ']";
@@ -25,13 +25,16 @@
   style.id = "xt-eliza-styles";
   style.textContent = `
     .xt-eliza-toggle-wrap {
-      position: relative; z-index: 30; display: flex; justify-content: flex-end;
-      width: calc(100% - 32px); max-width: 1100px; margin: -5px auto 14px;
-      box-sizing: border-box; pointer-events: none;
+      position: fixed; top: max(10px,env(safe-area-inset-top)); right: 12px;
+      z-index: 1000000; display: flex; width: auto; margin: 0;
+      box-sizing: border-box; pointer-events: none; opacity: .78;
+      transform: scale(.92); transform-origin: top right;
+      transition: opacity .18s ease,transform .18s ease;
     }
+    .xt-eliza-toggle-wrap:hover,.xt-eliza-toggle-wrap:focus-within { opacity: 1; transform: scale(1); }
     .xt-eliza-toggle {
       appearance: none; -webkit-appearance: none; display: inline-flex; align-items: center;
-      gap: 9px; padding: 8px 11px 8px 13px; border: 1px solid rgba(25,25,30,.14);
+      gap: 8px; padding: 7px 10px 7px 11px; border: 1px solid rgba(25,25,30,.14);
       border-radius: 999px; background: rgba(255,255,255,.92); color: #222;
       box-shadow: 0 8px 24px rgba(0,0,0,.11); font: 800 10px/1 system-ui,sans-serif;
       letter-spacing: .12em; text-transform: uppercase; cursor: pointer; pointer-events: auto;
@@ -86,7 +89,8 @@
     }
     .xt-eliza-message.show { opacity: 1; transform: translateY(0); }
     @media (max-width:760px) {
-      .xt-eliza-toggle-wrap { justify-content: center; width: calc(100% - 24px); margin-top: 0; }
+      .xt-eliza-toggle-wrap { top: max(8px,env(safe-area-inset-top)); right: 8px; transform: scale(.86); }
+      .xt-eliza-toggle-wrap:hover,.xt-eliza-toggle-wrap:focus-within { transform: scale(.92); }
     }
   `;
   document.head.appendChild(style);
@@ -236,6 +240,47 @@
     return request;
   }
 
+  function sameFace(a, b) {
+    const ab = a.detection.box;
+    const bb = b.detection.box;
+    const ax = ab.x + ab.width / 2;
+    const ay = ab.y + ab.height / 2;
+    const bx = bb.x + bb.width / 2;
+    const by = bb.y + bb.height / 2;
+    return Math.hypot(ax - bx, ay - by) < Math.max(ab.width, bb.width) * .28;
+  }
+
+  function landmarkFace(result, imageWidth, imageHeight) {
+    const box = result.detection.box;
+    const left = result.landmarks.getLeftEye();
+    const right = result.landmarks.getRightEye();
+    if (!left.length || !right.length) return null;
+    const centre = points => points.reduce(
+      (sum, point) => ({ x: sum.x + point.x, y: sum.y + point.y }),
+      { x: 0, y: 0 }
+    );
+    const lc = centre(left);
+    const rc = centre(right);
+    lc.x /= left.length; lc.y /= left.length;
+    rc.x /= right.length; rc.y /= right.length;
+    const gap = Math.hypot(rc.x - lc.x, rc.y - lc.y);
+    const width = points => Math.hypot(
+      points[3].x - points[0].x,
+      points[3].y - points[0].y
+    );
+    const eyeWidth = (width(left) + width(right)) / 2;
+    const plausible = gap > box.width * .16 && gap < box.width * .72 &&
+      Math.abs(rc.y - lc.y) < gap * .42 && eyeWidth > gap * .12 && eyeWidth < gap * .78;
+    if (!plausible) return null;
+    return {
+      lx: lc.x / imageWidth,
+      ly: lc.y / imageHeight,
+      rx: rc.x / imageWidth,
+      ry: rc.y / imageHeight,
+      size: Math.max(.038, Math.min(.105, (eyeWidth * 1.65) / imageWidth))
+    };
+  }
+
   function addEye(layer, x, y, size, index) {
     const eye = document.createElement("span");
     eye.className = "xt-eliza-eye";
@@ -288,36 +333,23 @@
       // The storefront's visible <img> elements omit crossorigin, which taints
       // any canvas used by TensorFlow. Analyse a CORS-enabled copy instead.
       const source = await cleanImageFor(img);
-      const results = await window.faceapi.detectAllFaces(
+      const strict = await window.faceapi.detectAllFaces(
         source,
-        new window.faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: .55 })
+        new window.faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: .54 })
       ).withFaceLandmarks(true);
+      const playful = await window.faceapi.detectAllFaces(
+        source,
+        new window.faceapi.TinyFaceDetectorOptions({ inputSize: 512, scoreThreshold: .34 })
+      ).withFaceLandmarks(true);
+      const results = strict.slice();
+      playful.forEach(candidate => {
+        if (!results.some(existing => sameFace(existing, candidate))) results.push(candidate);
+      });
       const w = source.naturalWidth || 1;
       const h = source.naturalHeight || 1;
-      const faces = results.slice(0, 12).map(result => {
-        const left = result.landmarks.getLeftEye();
-        const right = result.landmarks.getRightEye();
-        const centre = points => points.reduce(
-          (sum, point) => ({ x: sum.x + point.x, y: sum.y + point.y }),
-          { x: 0, y: 0 }
-        );
-        const lc = centre(left);
-        const rc = centre(right);
-        lc.x /= left.length; lc.y /= left.length;
-        rc.x /= right.length; rc.y /= right.length;
-        const width = points => Math.hypot(
-          points[3].x - points[0].x,
-          points[3].y - points[0].y
-        );
-        const eyeWidth = (width(left) + width(right)) / 2;
-        return {
-          lx: lc.x / w,
-          ly: lc.y / h,
-          rx: rc.x / w,
-          ry: rc.y / h,
-          size: Math.max(.038, Math.min(.105, (eyeWidth * 1.65) / w))
-        };
-      });
+      const faces = results.slice(0, 18)
+        .map(result => landmarkFace(result, w, h))
+        .filter(Boolean);
       cache[key] = faces;
       saveCache();
       processed.add(img);
