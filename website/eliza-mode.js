@@ -7,10 +7,19 @@
   window.__xtElizaModeInstalled = true;
 
   const ENABLED_KEY = "xt-eliza-enabled-v2";
-  const CACHE_KEY = "xt-eliza-cache-v2";
+  const CACHE_KEY = "xt-eliza-cache-v3";
   const API_URL = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/dist/face-api.js";
   const MODEL_URL = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/model";
   const COVER_SELECTOR = ".tile.releaseItem .artwork img, main a[href^='/release/'] img, main img[alt*=' | ']";
+  const GOOD_TASTE_ARTISTS = [
+    "amy winehouse", "nirvana", "kurt cobain", "joy division", "ian curtis",
+    "linkin park", "chester bennington", "soundgarden", "audioslave", "chris cornell",
+    "the prodigy", "keith flint", "avicii", "tim bergling", "frightened rabbit",
+    "scott hutchison", "sparklehorse", "mark linkous", "vic chesnutt"
+  ];
+  const GOOD_TASTE_TERMS = [
+    "in memoriam", "memorial", "tribute to", "rest in peace", "r.i.p.", "rip "
+  ];
 
   const style = document.createElement("style");
   style.id = "xt-eliza-styles";
@@ -51,23 +60,23 @@
     html.xt-eliza-on .xt-eliza-layer { display: block; }
     .xt-eliza-eye {
       position: absolute !important; display: block !important; aspect-ratio: 1/1;
-      min-width: 7px !important; min-height: 7px !important;
-      transform: translate(-50%,-50%) rotate(var(--tilt)); border: 1px solid #111 !important;
-      border-radius: 50% !important; background: #fff !important;
-      box-shadow: 0 1px 3px rgba(0,0,0,.4) !important; box-sizing: border-box !important;
+      min-width: 8px !important; min-height: 8px !important;
+      transform: translate(-50%,-50%) rotate(var(--tilt)); border: 1.5px solid #111 !important;
+      border-radius: 50% !important;
+      background: radial-gradient(circle at 38% 32%,#fff 0 50%,#eee 74%,#ccc 100%) !important;
+      box-shadow: 0 1px 2px rgba(0,0,0,.58),inset 0 0 0 1px rgba(255,255,255,.55) !important;
+      box-sizing: border-box !important;
     }
     .xt-eliza-pupil {
-      position: absolute !important; top: var(--py) !important; left: var(--px) !important;
-      display: block !important; width: 47% !important; height: 47% !important;
+      position: absolute !important;
+      top: calc(50% + var(--xt-look-y,0px)) !important;
+      left: calc(50% + var(--xt-look-x,0px)) !important;
+      display: block !important; width: 46% !important; height: 46% !important;
       min-width: 2px !important; min-height: 2px !important; transform: translate(-50%,-50%);
-      border: 0 !important; border-radius: 50% !important; background: #111 !important;
+      border: 0 !important; border-radius: 50% !important;
+      background: radial-gradient(circle at 33% 28%,#fff 0 8%,#111 10% 100%) !important;
+      transition: top .13s ease-out,left .13s ease-out !important;
     }
-    @media (hover:hover) and (prefers-reduced-motion:no-preference) {
-      .xt-eliza-host:hover .xt-eliza-eye:nth-child(odd) .xt-eliza-pupil { animation: xt-eye-a .7s infinite alternate ease-in-out; }
-      .xt-eliza-host:hover .xt-eliza-eye:nth-child(even) .xt-eliza-pupil { animation: xt-eye-b .61s infinite alternate ease-in-out; }
-    }
-    @keyframes xt-eye-a { from { transform:translate(-72%,-63%); } to { transform:translate(-28%,-38%); } }
-    @keyframes xt-eye-b { from { transform:translate(-35%,-70%); } to { transform:translate(-66%,-30%); } }
     .xt-eliza-message {
       position: fixed; right: 18px; bottom: 18px; z-index: 1000000;
       padding: 10px 13px; border-radius: 12px; background: rgba(18,18,22,.92); color: #fff;
@@ -94,6 +103,11 @@
   let observed = new WeakSet();
   let processed = new WeakSet();
   const cleanImages = new Map();
+  let lastScrollX = window.scrollX;
+  let lastScrollY = window.scrollY;
+  let scrollFrame = 0;
+  let settleTimer = 0;
+  let scrollListening = false;
 
   try { cache = JSON.parse(localStorage.getItem(CACHE_KEY) || "{}"); }
   catch (_) { cache = {}; }
@@ -165,7 +179,10 @@
           if (!ready) await tf.setBackend("cpu");
           if (typeof tf.ready === "function") await tf.ready();
         }
-        return window.faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+        return Promise.all([
+          window.faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+          window.faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL)
+        ]);
       })
       .then(() => { detectorReady = true; syncButton(false); })
       .catch(error => {
@@ -186,6 +203,13 @@
       url.search = ""; url.hash = "";
       return url.href;
     } catch (_) { return img.currentSrc || img.src || ""; }
+  }
+
+  function passesGoodTaste(img) {
+    const tile = img.closest(".tile.releaseItem") || img.closest("a[href^='/release/']") || img.parentElement;
+    const text = `${img.alt || ""} ${tile?.textContent || ""}`.toLowerCase().replace(/\s+/g, " ");
+    return !GOOD_TASTE_ARTISTS.some(name => text.includes(name)) &&
+      !GOOD_TASTE_TERMS.some(term => text.includes(term));
   }
 
   function saveCache() {
@@ -219,8 +243,6 @@
     eye.style.top = `${y * 100}%`;
     eye.style.width = `${size * 100}%`;
     eye.style.setProperty("--tilt", index % 2 ? "7deg" : "-6deg");
-    eye.style.setProperty("--px", index % 3 ? "56%" : "43%");
-    eye.style.setProperty("--py", index % 2 ? "55%" : "47%");
     const pupil = document.createElement("span");
     pupil.className = "xt-eliza-pupil";
     eye.appendChild(pupil);
@@ -241,8 +263,8 @@
     }
     layer.replaceChildren();
     faces.forEach((face, i) => {
-      addEye(layer, face.lx, face.y, face.size, i * 2);
-      addEye(layer, face.rx, face.y, face.size, i * 2 + 1);
+      addEye(layer, face.lx, face.ly, face.size, i * 2);
+      addEye(layer, face.rx, face.ry, face.size, i * 2 + 1);
     });
   }
 
@@ -250,6 +272,10 @@
     if (!enabled || processed.has(img)) return;
     const rect = img.getBoundingClientRect();
     if (rect.width < 105 || rect.height < 105) return;
+    if (!passesGoodTaste(img)) {
+      processed.add(img);
+      return;
+    }
     const key = keyFor(img);
     if (cache[key]) {
       processed.add(img);
@@ -264,17 +290,32 @@
       const source = await cleanImageFor(img);
       const results = await window.faceapi.detectAllFaces(
         source,
-        new window.faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: .46 })
-      );
+        new window.faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: .55 })
+      ).withFaceLandmarks(true);
       const w = source.naturalWidth || 1;
       const h = source.naturalHeight || 1;
       const faces = results.slice(0, 12).map(result => {
-        const b = result.box;
+        const left = result.landmarks.getLeftEye();
+        const right = result.landmarks.getRightEye();
+        const centre = points => points.reduce(
+          (sum, point) => ({ x: sum.x + point.x, y: sum.y + point.y }),
+          { x: 0, y: 0 }
+        );
+        const lc = centre(left);
+        const rc = centre(right);
+        lc.x /= left.length; lc.y /= left.length;
+        rc.x /= right.length; rc.y /= right.length;
+        const width = points => Math.hypot(
+          points[3].x - points[0].x,
+          points[3].y - points[0].y
+        );
+        const eyeWidth = (width(left) + width(right)) / 2;
         return {
-          lx: (b.x + b.width * .34) / w,
-          rx: (b.x + b.width * .66) / w,
-          y: (b.y + b.height * .42) / h,
-          size: Math.max(.035, Math.min(.13, (b.width * .19) / w))
+          lx: lc.x / w,
+          ly: lc.y / h,
+          rx: rc.x / w,
+          ry: rc.y / h,
+          size: Math.max(.038, Math.min(.105, (eyeWidth * 1.65) / w))
         };
       });
       cache[key] = faces;
@@ -302,6 +343,28 @@
     drain();
   }
 
+  function resetGaze() {
+    document.documentElement.style.setProperty("--xt-look-x", "0px");
+    document.documentElement.style.setProperty("--xt-look-y", "0px");
+  }
+
+  function reactToScroll() {
+    if (!enabled || scrollFrame) return;
+    scrollFrame = requestAnimationFrame(() => {
+      scrollFrame = 0;
+      const nextX = window.scrollX;
+      const nextY = window.scrollY;
+      const dx = Math.max(-2.2, Math.min(2.2, (nextX - lastScrollX) * .09));
+      const dy = Math.max(-2.2, Math.min(2.2, (nextY - lastScrollY) * .09));
+      lastScrollX = nextX;
+      lastScrollY = nextY;
+      document.documentElement.style.setProperty("--xt-look-x", `${dx}px`);
+      document.documentElement.style.setProperty("--xt-look-y", `${dy}px`);
+      clearTimeout(settleTimer);
+      settleTimer = setTimeout(resetGaze, 135);
+    });
+  }
+
   function observe(root = document) {
     if (!enabled || !io) return;
     const images = [];
@@ -315,6 +378,12 @@
   }
 
   function start() {
+    lastScrollX = window.scrollX;
+    lastScrollY = window.scrollY;
+    if (!scrollListening) {
+      window.addEventListener("scroll", reactToScroll, { passive: true });
+      scrollListening = true;
+    }
     if (!io) {
       io = new IntersectionObserver(entries => {
         entries.forEach(entry => { if (entry.isIntersecting) enqueue(entry.target); });
@@ -336,6 +405,11 @@
   function stop() {
     if (io) io.disconnect();
     if (mo) mo.disconnect();
+    if (scrollListening) {
+      window.removeEventListener("scroll", reactToScroll);
+      scrollListening = false;
+    }
+    resetGaze();
     queue = [];
   }
 
