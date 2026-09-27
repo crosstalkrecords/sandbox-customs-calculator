@@ -7,7 +7,7 @@
   window.__xtElizaModeInstalled = true;
 
   const ENABLED_KEY = "xt-eliza-enabled-v2";
-  const CACHE_KEY = "xt-eliza-cache-v7";
+  const CACHE_KEY = "xt-eliza-cache-v8";
   const API_URL = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/dist/face-api.js";
   const MODEL_URL = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/model";
   const COVER_SELECTOR = ".tile.releaseItem .artwork img, main a[href^='/release/'] img, main img[alt*=' | ']";
@@ -48,6 +48,64 @@
     {
       match: "d'angelo - brown sugar",
       faces: [{ lx: .396, ly: .276, rx: .501, ry: .276, size: .055 }]
+    },
+    {
+      terms: ["robyn", "sexistential"],
+      faces: [{ lx: .455, ly: .312, rx: .568, ry: .305, size: .060 }]
+    },
+    {
+      terms: ["holly humberstone", "cruel world"],
+      faces: [{ lx: .515, ly: .344, rx: .612, ry: .338, size: .055 }]
+    },
+    {
+      terms: ["melody gardot", "bye bye blackbird"],
+      // Two turned faces: use the one visible eye on each person.
+      faces: [{ lx: .398, ly: .302, rx: .545, ry: .270, size: .050 }]
+    },
+    {
+      terms: ["morning star", "arakh"],
+      faces: [{ lx: .468, ly: .298, rx: .536, ry: .316, size: .042 }]
+    },
+    {
+      terms: ["minnie riperton", "love lives forever"],
+      faces: [{ lx: .315, ly: .268, rx: .650, ry: .265, size: .070 }]
+    },
+    {
+      terms: ["a tribe called quest", "midnight marauders"],
+      // The border is a whole crowd, so this deliberately gets a playful
+      // sampling of faces rather than a lone arbitrary pair in the middle.
+      faces: [
+        { lx: .073, ly: .145, rx: .116, ry: .145, size: .029 },
+        { lx: .205, ly: .138, rx: .247, ry: .138, size: .029 },
+        { lx: .344, ly: .137, rx: .386, ry: .137, size: .029 },
+        { lx: .744, ly: .140, rx: .785, ry: .140, size: .029 },
+        { lx: .878, ly: .145, rx: .920, ry: .145, size: .029 },
+        { lx: .080, ly: .370, rx: .122, ry: .370, size: .029 },
+        { lx: .878, ly: .370, rx: .920, ry: .370, size: .029 },
+        { lx: .075, ly: .610, rx: .117, ry: .610, size: .029 },
+        { lx: .883, ly: .610, rx: .925, ry: .610, size: .029 },
+        { lx: .080, ly: .835, rx: .122, ry: .835, size: .029 },
+        { lx: .878, ly: .835, rx: .920, ry: .835, size: .029 }
+      ]
+    },
+    {
+      terms: ["simon & garfunkel", "bookends"],
+      faces: [
+        { lx: .235, ly: .300, rx: .370, ry: .305, size: .065 },
+        { lx: .650, ly: .275, rx: .770, ry: .260, size: .060 }
+      ]
+    },
+    {
+      terms: ["the cure", "disintegration"],
+      faces: [{ lx: .265, ly: .330, rx: .382, ry: .306, size: .058 }]
+    },
+    {
+      terms: ["madvillainy"],
+      faces: [{ lx: .384, ly: .428, rx: .620, ry: .428, size: .070 }]
+    },
+    {
+      terms: ["björk", "debut"],
+      faces: [{ lx: .414, ly: .275, rx: .583, ry: .275, size: .060 }]
     }
   ];
 
@@ -344,7 +402,9 @@
 
   function manualArtworkFacesFor(img) {
     const label = `${img.alt || ""} ${img.currentSrc || img.src || ""}`.toLowerCase();
-    return MANUAL_ARTWORK_FACES.find(rule => label.includes(rule.match))?.faces || null;
+    return MANUAL_ARTWORK_FACES.find(rule =>
+      rule.match ? label.includes(rule.match) : rule.terms.every(term => label.includes(term))
+    )?.faces || null;
   }
 
   function addEye(layer, x, y, size, index) {
@@ -438,7 +498,7 @@
         // Confident detections may be smaller (band portraits and animal
         // heads); uncertain detections still need to be large and central.
         const highConfidence = confidence >= .50;
-        const largeEnough = box.width >= source.naturalWidth * (highConfidence ? .07 : .12);
+        const largeEnough = box.width >= source.naturalWidth * (highConfidence ? .055 : .12);
         const edge = highConfidence ? .06 : .14;
         const safelyFramed = centreX > edge && centreX < 1 - edge &&
           centreY > .06 && centreY < .91;
