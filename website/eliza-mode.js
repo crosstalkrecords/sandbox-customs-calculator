@@ -63,7 +63,9 @@
       faces: [{ lx: .398, ly: .302, rx: .545, ry: .270, size: .050 }]
     },
     {
-      terms: ["morning star", "arakh"],
+      // The artist uses accented spelling in some catalogue records, so the
+      // distinctive title is the more reliable cross-page key.
+      terms: ["morning star"],
       faces: [{ lx: .468, ly: .298, rx: .536, ry: .316, size: .042 }]
     },
     {
