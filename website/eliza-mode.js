@@ -22,6 +22,34 @@
   const GOOD_TASTE_TERMS = [
     "in memoriam", "memorial", "tribute to", "rest in peace", "r.i.p.", "rip "
   ];
+  const MANUAL_ARTWORK_FACES = [
+    {
+      match: "kylie minogue - kiss me once",
+      faces: [{ lx: .30, ly: .33, rx: .68, ry: .33, size: .065 }]
+    },
+    {
+      match: "heart - dreamboat annie",
+      // One visible profile eye per sister is funnier and reads more cleanly
+      // than forcing two eyes onto either turned face.
+      faces: [{ lx: .19, ly: .52, rx: .84, ry: .52, size: .055 }]
+    },
+    {
+      match: "alice in chains - mtv unplugged",
+      faces: [
+        { lx: .106, ly: .326, rx: .170, ry: .326, size: .045 },
+        { lx: .332, ly: .373, rx: .379, ry: .373, size: .043 },
+        { lx: .833, ly: .429, rx: .886, ry: .429, size: .045 }
+      ]
+    },
+    {
+      match: "carlos paredes - guitarra portuguesa",
+      faces: [{ lx: .29, ly: .30, rx: .345, ry: .30, size: .045 }]
+    },
+    {
+      match: "d'angelo - brown sugar",
+      faces: [{ lx: .396, ly: .276, rx: .501, ry: .276, size: .055 }]
+    }
+  ];
 
   const style = document.createElement("style");
   style.id = "xt-eliza-styles";
@@ -313,6 +341,11 @@
     return null;
   }
 
+  function manualArtworkFacesFor(img) {
+    const label = `${img.alt || ""} ${img.currentSrc || img.src || ""}`.toLowerCase();
+    return MANUAL_ARTWORK_FACES.find(rule => label.includes(rule.match))?.faces || null;
+  }
+
   function addEye(layer, x, y, size, index) {
     const eye = document.createElement("span");
     eye.className = "xt-eliza-eye";
@@ -365,9 +398,10 @@
   async function analyse(img) {
     if (!enabled || processed.has(img)) return;
     const bonnieFaces = bonnieFacesFor(img);
-    if (bonnieFaces) {
+    const fixedFaces = bonnieFaces || manualArtworkFacesFor(img);
+    if (fixedFaces) {
       processed.add(img);
-      return render(img, bonnieFaces, true);
+      return render(img, fixedFaces, Boolean(bonnieFaces));
     }
     const rect = img.getBoundingClientRect();
     if (rect.width < 105 || rect.height < 105) return;
