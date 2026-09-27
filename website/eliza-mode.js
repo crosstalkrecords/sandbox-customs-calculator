@@ -331,8 +331,9 @@
     const src = (img.currentSrc || img.src || "").toLowerCase();
     const alt = (img.alt || "").toLowerCase();
     if (img.classList.contains("xt-hero-img") || src.includes("c5wesat")) {
-      // Bonnie's astronaut head inside the wide Crosstalk homepage artwork.
-      return [{ lx: .390, ly: .570, rx: .410, ry: .582, size: .026 }];
+      // Bonnie is in three-quarter profile: the near eye sits low-left while
+      // the far eye belongs visibly higher and farther right on the skull.
+      return [{ lx: .390, ly: .570, rx: .421, ry: .538, size: .026 }];
     }
     if (src.includes("bonnie") || alt.includes("bonnie")) {
       // A tightly cropped Bonnie head/icon used elsewhere on the site.
