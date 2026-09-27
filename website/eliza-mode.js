@@ -7,7 +7,7 @@
   window.__xtElizaModeInstalled = true;
 
   const ENABLED_KEY = "xt-eliza-enabled-v2";
-  const CACHE_KEY = "xt-eliza-cache-v5";
+  const CACHE_KEY = "xt-eliza-cache-v6";
   const API_URL = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/dist/face-api.js";
   const MODEL_URL = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/model";
   const COVER_SELECTOR = ".tile.releaseItem .artwork img, main a[href^='/release/'] img, main img[alt*=' | ']";
@@ -262,21 +262,33 @@
     const rc = centre(right);
     lc.x /= left.length; lc.y /= left.length;
     rc.x /= right.length; rc.y /= right.length;
-    const gap = Math.hypot(rc.x - lc.x, rc.y - lc.y);
+    const rawGap = Math.hypot(rc.x - lc.x, rc.y - lc.y);
     const width = points => Math.hypot(
       points[3].x - points[0].x,
       points[3].y - points[0].y
     );
     const eyeWidth = (width(left) + width(right)) / 2;
-    const plausible = gap > box.width * .16 && gap < box.width * .72 &&
-      Math.abs(rc.y - lc.y) < gap * .42 && eyeWidth > gap * .12 && eyeWidth < gap * .78;
+    const plausible = rawGap > box.width * .16 && rawGap < box.width * .72 &&
+      Math.abs(rc.y - lc.y) < rawGap * .42 && eyeWidth > rawGap * .12 && eyeWidth < rawGap * .78;
     if (!plausible) return null;
+    // Tiny landmarks can pull the eyes together on three-quarter portraits.
+    // Preserve their angle and midpoint, but enforce a natural minimum spread
+    // relative to the detected face width.
+    const targetGap = Math.max(rawGap, box.width * .275);
+    const midX = (lc.x + rc.x) / 2;
+    const midY = (lc.y + rc.y) / 2;
+    const ux = (rc.x - lc.x) / rawGap;
+    const uy = (rc.y - lc.y) / rawGap;
+    lc.x = midX - ux * targetGap / 2;
+    lc.y = midY - uy * targetGap / 2;
+    rc.x = midX + ux * targetGap / 2;
+    rc.y = midY + uy * targetGap / 2;
     return {
       lx: lc.x / imageWidth,
       ly: lc.y / imageHeight,
       rx: rc.x / imageWidth,
       ry: rc.y / imageHeight,
-      size: Math.max(.038, Math.min(.105, (eyeWidth * 1.65) / imageWidth))
+      size: Math.max(.038, Math.min(.105, Math.max(eyeWidth * 1.65, targetGap * .31) / imageWidth))
     };
   }
 
@@ -342,8 +354,12 @@
       ).withFaceLandmarks(true);
       const results = strict.slice();
       playful.forEach(candidate => {
-        const largeEnough = candidate.detection.box.width >= source.naturalWidth * .12;
-        if (largeEnough && !results.some(existing => sameFace(existing, candidate))) {
+        const box = candidate.detection.box;
+        const centreX = (box.x + box.width / 2) / source.naturalWidth;
+        const centreY = (box.y + box.height / 2) / source.naturalHeight;
+        const largeEnough = box.width >= source.naturalWidth * .12;
+        const safelyFramed = centreX > .14 && centreX < .86 && centreY > .08 && centreY < .88;
+        if (largeEnough && safelyFramed && !results.some(existing => sameFace(existing, candidate))) {
           results.push(candidate);
         }
       });
